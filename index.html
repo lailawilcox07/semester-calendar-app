@@ -1,0 +1,839 @@
+<meta charset="UTF-8">
+<title>Semester Calendar</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#355E56">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Semester Calendar">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-512.png" type="image/png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --bg:#F7F4EE;
+    --surface:#FFFFFF;
+    --ink:#24211D;
+    --muted:#8A8377;
+    --line:#E3DFD6;
+    --class:#355E56;
+    --class-tint:#E4ECE9;
+    --study:#B07A2C;
+    --study-tint:#F5E9D7;
+    --commute:#55677E;
+    --commute-tint:#E7EAEF;
+    --sport:#A2492F;
+    --sport-tint:#F3E2DB;
+    --sleep:#6B5670;
+    --sleep-tint:#EBE5EC;
+    --personal:#6E7F52;
+    --personal-tint:#E9EDE2;
+    --flag:#B23A48;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1B1916; --surface:#242220; --ink:#EDE9E2; --muted:#A69E8F; --line:#3A362F;
+      --class:#7FB3A6; --class-tint:#26332F;
+      --study:#E0A855; --study-tint:#3A2E1C;
+      --commute:#9AB0CB; --commute-tint:#28303B;
+      --sport:#E08064; --sport-tint:#3A2621;
+      --sleep:#C7A9CC; --sleep-tint:#332B37;
+      --personal:#B7CB93; --personal-tint:#2B3122;
+      --flag:#F0798A;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#1B1916; --surface:#242220; --ink:#EDE9E2; --muted:#A69E8F; --line:#3A362F;
+    --class:#7FB3A6; --class-tint:#26332F;
+    --study:#E0A855; --study-tint:#3A2E1C;
+    --commute:#9AB0CB; --commute-tint:#28303B;
+    --sport:#E08064; --sport-tint:#3A2621;
+    --sleep:#C7A9CC; --sleep-tint:#332B37;
+    --personal:#B7CB93; --personal-tint:#2B3122;
+    --flag:#F0798A;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Work Sans", -apple-system, sans-serif;
+    padding-inline:16px; padding-block:20px 40px;
+  }
+  h1{font-family:"Fraunces", Georgia, serif; margin:0; text-wrap:balance;}
+  .mono{font-family:"IBM Plex Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums;}
+  .wrap{max-width:1180px; margin:0 auto;}
+
+  header.page{margin-bottom:18px;}
+  header.page .eyebrow{font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:6px;}
+  header.page h1{font-size:clamp(26px,4vw,36px); font-weight:600;}
+  header.page p.sub{color:var(--muted); font-size:14px; margin:8px 0 0; max-width:640px; line-height:1.5;}
+
+  /* ---- now strip ---- */
+  .nowstrip{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;}
+  .now-pill{
+    background:var(--surface); border:1px solid var(--line); border-radius:10px;
+    padding:9px 13px; font-size:13px; display:flex; align-items:center; gap:8px; flex:1 1 220px;
+    line-height:1.3;
+  }
+  .now-pill .now-label{
+    font-size:10px; text-transform:uppercase; letter-spacing:.06em; font-weight:700;
+    background:var(--class-tint); color:var(--class); padding:3px 6px; border-radius:5px; flex:none;
+  }
+  .now-pill.next .now-label{background:var(--study-tint); color:var(--study);}
+  .now-pill.deadline{border-color:var(--flag);}
+  .now-pill.deadline .now-label{background:var(--flag); color:#fff;}
+  .now-pill .mono{margin-left:auto; color:var(--muted); font-size:12px; flex:none;}
+  .now-pill.deadline .mono{color:var(--flag); font-weight:600;}
+
+  /* ---- tabs ---- */
+  .tabbar{display:flex; gap:6px; margin-bottom:16px;}
+  .tabbar button{
+    flex:1; font-family:"Work Sans",sans-serif; font-size:13px; font-weight:600;
+    padding:10px 8px; border-radius:10px; border:1px solid var(--line); background:var(--surface);
+    color:var(--muted); cursor:pointer; transition:background .12s,color .12s,border-color .12s;
+  }
+  .tabbar button.active{background:var(--class); color:var(--surface); border-color:var(--class);}
+
+  .legend{
+    display:flex; flex-wrap:wrap; gap:10px 18px; margin:0 0 22px;
+    padding:12px 16px; background:var(--surface); border:1px solid var(--line); border-radius:10px;
+  }
+  .legend .item{display:flex; align-items:center; gap:7px; font-size:12.5px;}
+  .legend .swatch{width:12px; height:12px; border-radius:3px; flex:none;}
+  .legend .swatch.flagged{background:transparent; border:2px dashed var(--flag); width:10px; height:10px;}
+
+  .weekbar{display:flex; gap:6px; overflow-x:auto; padding-bottom:10px; margin-bottom:10px; -webkit-overflow-scrolling:touch;}
+  .weekbar::-webkit-scrollbar{height:6px;}
+  .weekbar::-webkit-scrollbar-thumb{background:var(--line); border-radius:3px;}
+  .weekbar button{
+    flex:none; font-family:"Work Sans",sans-serif; font-size:12.5px; font-weight:600;
+    padding:8px 13px; border-radius:999px; border:1px solid var(--line); background:var(--surface);
+    color:var(--muted); cursor:pointer; white-space:nowrap; transition:background .12s,color .12s,border-color .12s;
+  }
+  .weekbar button:hover{border-color:var(--class);}
+  .weekbar button.active{background:var(--class); color:var(--surface); border-color:var(--class);}
+
+  .weeknote{
+    background:var(--study-tint); border:1px solid var(--line); border-radius:10px;
+    padding:12px 16px; margin-bottom:16px; font-size:13.5px; line-height:1.55;
+  }
+  .weeknote b{color:var(--study);}
+
+  .gridscroll{overflow-x:auto; border:1px solid var(--line); border-radius:12px; background:var(--surface); -webkit-overflow-scrolling:touch;}
+  .calwrap{display:flex; min-width:1030px;}
+
+  .timecol{flex:0 0 54px; position:sticky; left:0; z-index:4; background:var(--surface); border-right:1px solid var(--line);}
+  .daycol{flex:1 1 0; min-width:138px; position:relative; border-right:1px solid var(--line);}
+  .daycol:last-child{border-right:none;}
+
+  .headrow{display:flex; position:sticky; top:0; z-index:5; background:var(--surface); border-bottom:2px solid var(--line);}
+  .headcell{flex:1 1 0; min-width:138px; padding:10px 8px 12px; border-right:1px solid var(--line);}
+  .headcell:last-child{border-right:none;}
+  .headcell.timehead{flex:0 0 54px; position:sticky; left:0; z-index:6; background:var(--surface);}
+  .dayname{font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted);}
+  .daydate{font-family:"Fraunces",serif; font-size:17px; margin-top:2px;}
+  .duewrap{display:flex; flex-direction:column; gap:3px; margin-top:7px;}
+  .duetag{
+    display:flex; align-items:center; gap:5px; font-size:10.5px; line-height:1.3; padding:3px 6px 3px 5px;
+    border-radius:5px; background:var(--flag); color:#fff; font-weight:600; cursor:pointer;
+  }
+  .duetag input{width:12px; height:12px; flex:none; accent-color:#fff; cursor:pointer;}
+  .duetag.done{opacity:.5;}
+  .duetag.done span{text-decoration:line-through;}
+
+  .bodyrow{display:flex;}
+  .timeline-bg{background-image:repeating-linear-gradient(to bottom, var(--line) 0, var(--line) 1px, transparent 1px, transparent var(--hr));}
+  .hourlabel{position:absolute; right:6px; font-size:10px; color:var(--muted); transform:translateY(-6px);}
+
+  .block{
+    position:absolute; left:3px; right:3px; border-radius:7px; padding:5px 7px; font-size:11.5px; line-height:1.28;
+    overflow:hidden; border:1px solid transparent; box-sizing:border-box;
+  }
+  .block .t{display:block; font-size:9px; opacity:.75; font-variant-numeric:tabular-nums;}
+  .block .l{display:block; font-weight:600;}
+  .block.class{background:var(--class-tint); color:var(--class); border-color:var(--class);}
+  .block.study{background:var(--study-tint); color:var(--study); border-color:var(--study);}
+  .block.commute{background:var(--commute-tint); color:var(--commute); border-color:var(--commute);}
+  .block.sport{background:var(--sport-tint); color:var(--sport); border-color:var(--sport);}
+  .block.sleep{background:var(--sleep-tint); color:var(--sleep); border-color:var(--sleep);}
+  .block.personal{background:var(--personal-tint); color:var(--personal); border-color:var(--personal);}
+  .block.exam{background:var(--flag); color:#fff; border-color:var(--flag);}
+  .block.flagged{border:2px dashed var(--flag) !important;}
+  .block.flagged .l::before{content:"⚑ ";}
+  .block-check{width:13px; height:13px; margin:0 4px 0 0; vertical-align:-2px; accent-color:currentColor; cursor:pointer;}
+  .block.done{opacity:.5;}
+  .block.done .l{text-decoration:line-through;}
+
+  /* ---- todo / progress ---- */
+  .todolist{display:flex; flex-direction:column;}
+  .todo-row{
+    display:flex; align-items:center; gap:10px; padding:11px 14px; background:var(--surface);
+    border:1px solid var(--line); border-radius:9px; margin-bottom:6px; font-size:13.5px; cursor:pointer;
+  }
+  .todo-row input[type=checkbox]{width:17px; height:17px; flex:none; cursor:pointer;}
+  .todo-row.small{padding:8px 10px; font-size:12.5px; margin-bottom:4px;}
+  .todo-row.small input[type=checkbox]{width:15px; height:15px;}
+  .todo-course{font-size:11px; font-weight:700; letter-spacing:.02em; flex:none; min-width:62px;}
+  .todo-text{flex:1;}
+  .todo-date{font-size:11.5px; color:var(--muted); flex:none; white-space:nowrap;}
+  .todo-row.done{opacity:.5;}
+  .todo-row.done .todo-text{text-decoration:line-through;}
+  .todo-row.overdue .todo-date{color:var(--flag); font-weight:600;}
+  .todo-empty{color:var(--muted); font-size:13.5px; padding:20px 4px;}
+
+  .proglist{display:flex; flex-direction:column; gap:14px;}
+  .course-card{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px;}
+  .course-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; gap:10px;}
+  .course-name{font-family:"Fraunces",serif; font-size:16px; font-weight:600;}
+  .course-count{font-size:12.5px; color:var(--muted); flex:none;}
+  .course-bar-track{height:6px; border-radius:3px; background:var(--line); overflow:hidden; margin-bottom:10px;}
+  .course-bar-fill{height:100%; border-radius:3px; transition:width .2s;}
+  .course-items{display:flex; flex-direction:column;}
+
+  footer.note{margin-top:16px; font-size:12.5px; color:var(--muted); line-height:1.6; max-width:760px;}
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+
+<div class="wrap">
+  <header class="page">
+    <div class="eyebrow">Fall 2026 · BIOL 102 · COGS 100 · MATH 112 · MATH 225 · PHYS 242</div>
+    <h1>Semester Calendar</h1>
+    <p class="sub">Your repeating weekly rhythm — classes, walk-to-campus buffers, study blocks, soccer, meals and sleep — with each week's actual deadlines layered on top.</p>
+  </header>
+
+  <div class="nowstrip" id="nowstrip"></div>
+
+  <nav class="tabbar" id="tabbar">
+    <button data-tab="cal" class="active" type="button">Calendar</button>
+    <button data-tab="todo" type="button">To-Do</button>
+    <button data-tab="prog" type="button">Progress</button>
+  </nav>
+
+  <div id="view-cal">
+    <div class="legend" id="legend"></div>
+    <div class="weekbar" id="weekbar"></div>
+    <div class="weeknote" id="weeknote"></div>
+
+    <div class="gridscroll">
+      <div class="calwrap" id="calwrap"></div>
+    </div>
+  </div>
+
+  <div id="view-todo" hidden>
+    <div class="todolist" id="todolist"></div>
+  </div>
+
+  <div id="view-prog" hidden>
+    <div class="proglist" id="proglist"></div>
+  </div>
+
+  <footer class="note">
+    Commute assumption: 20 minutes each way between home and campus, built in once in the morning and once in the evening — gaps between classes are treated as on-campus study time rather than extra round trips. Soccer's own travel time isn't included since it wasn't specified; add a buffer on either side if you need to get there. Dates without a confirmed time yet (remaining MATH 225 quizzes, all final exams) are marked TBC/TBA — fill them in under <span class="mono">examDates</span> near the top of the script once SOLUS posts them. Checkmarks and the current view are saved on this device only.
+  </footer>
+</div>
+
+<script>
+(function(){
+  const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const DAYFULL = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+  const START_MIN = 7*60;      // 7:00am
+  const END_MIN = 22*60+30;    // 10:30pm
+  const TOTAL_MIN = END_MIN-START_MIN;
+  const PPM = 1.4;             // pixels per minute
+  const HOUR_PX = 60*PPM;
+
+  function toMin(hhmm){ const [h,m]=hhmm.split(":").map(Number); return h*60+m; }
+  function fmt(hhmm){
+    let [h,m] = hhmm.split(":").map(Number);
+    const ap = h>=12 ? "pm" : "am";
+    let h12 = h%12; if(h12===0) h12=12;
+    return h12 + (m? ":"+String(m).padStart(2,"0") : "") + ap;
+  }
+  function localDate(y,m,d){ return new Date(y,m,d); } // m is 0-indexed, matches weekDates below
+
+  const base = {
+    Mon: [
+      ["07:30","08:00","Wake / Breakfast","personal"],
+      ["08:00","12:40","Study block","study"],
+      ["12:40","13:10","Lunch","personal"],
+      ["13:10","13:30","Walk to campus","commute"],
+      ["13:30","14:30","PHYS 242 — Lecture","class"],
+      ["14:30","14:50","Walk home","commute"],
+      ["14:50","17:30","Study block","study"],
+      ["17:30","18:15","Dinner","personal"],
+      ["18:15","20:00","Study block","study"],
+      ["20:00","21:30","Soccer","sport"],
+      ["21:30","22:30","Wind-down","sleep"],
+    ],
+    Tue: [
+      ["07:30","08:00","Wake / Breakfast","personal"],
+      ["08:00","09:10","Study block","study"],
+      ["09:10","09:30","Walk to campus","commute"],
+      ["09:30","10:30","COGS 100 — Lecture","class"],
+      ["10:30","11:30","Study (on campus)","study"],
+      ["11:30","12:30","MATH 225 — Lecture","class"],
+      ["12:30","13:30","MATH 112 — Lecture","class"],
+      ["13:30","13:50","Walk home","commute"],
+      ["13:50","14:30","Lunch","personal"],
+      ["14:30","17:30","Study block","study"],
+      ["17:30","18:15","Dinner","personal"],
+      ["18:15","21:30","Study block","study"],
+      ["21:30","22:30","Wind-down","sleep"],
+    ],
+    Wed: [
+      ["07:30","08:00","Wake / Breakfast","personal"],
+      ["08:00","12:10","Study block","study"],
+      ["12:10","12:30","Walk to campus","commute"],
+      ["12:30","13:30","PHYS 242 — Lecture","class"],
+      ["13:30","14:30","MATH 225 — Lecture","class"],
+      ["14:30","15:30","PHYS 242 — Tutorial","class"],
+      ["15:30","16:30","BIOL 102 — Lecture","class"],
+      ["16:30","16:50","Walk home","commute"],
+      ["16:50","17:30","Break","personal"],
+      ["17:30","18:15","Dinner","personal"],
+      ["18:15","21:30","Study block","study"],
+      ["21:30","22:30","Wind-down","sleep"],
+    ],
+    Thu: [
+      ["07:00","07:50","Wake / Breakfast (early)","personal"],
+      ["07:50","08:10","Walk to campus","commute"],
+      ["08:10","08:30","Arrive / settle in","personal"],
+      ["08:30","09:30","COGS 100 — Lecture","class"],
+      ["09:30","11:30","Study (on campus)","study"],
+      ["11:30","12:30","MATH 112 — Lecture","class"],
+      ["12:30","14:30","Study (on campus)","study"],
+      ["14:30","16:00","BIOL 102 — Lab / Study block","class"],
+      ["16:00","16:30","Study (on campus)","study"],
+      ["16:30","17:30","MATH 225 — Tutorial","class"],
+      ["17:30","17:50","Walk home","commute"],
+      ["17:50","18:30","Dinner","personal"],
+      ["18:30","21:30","Study block","study"],
+      ["21:30","22:30","Wind-down","sleep"],
+    ],
+    Fri: [
+      ["07:30","08:00","Wake / Breakfast","personal"],
+      ["08:00","10:10","Study block","study"],
+      ["10:10","10:30","Walk to campus","commute"],
+      ["10:30","11:30","COGS 100 — Lecture","class"],
+      ["11:30","12:30","PHYS 242 — Lecture","class"],
+      ["12:30","13:30","MATH 225 — Lecture","class"],
+      ["13:30","14:30","MATH 112 — Lecture","class"],
+      ["14:30","15:30","BIOL 102 — Lecture","class"],
+      ["15:30","15:50","Walk home","commute"],
+      ["15:50","16:30","Decompress","personal"],
+      ["16:30","18:00","Light review","study"],
+      ["18:00","18:45","Dinner","personal"],
+      ["18:45","21:30","Protected downtime","personal"],
+      ["21:30","22:30","Wind-down","sleep"],
+    ],
+    Sat: [
+      ["07:30","08:00","Wake / Breakfast","personal"],
+      ["08:00","11:30","Deep work block","study"],
+      ["11:30","12:15","Lunch","personal"],
+      ["12:15","15:00","Study block","study"],
+      ["15:00","16:00","Break / errands","personal"],
+      ["16:00","18:00","Light review","study"],
+      ["18:00","18:45","Dinner","personal"],
+      ["18:45","21:30","Protected downtime","personal"],
+      ["21:30","22:30","Wind-down","sleep"],
+    ],
+    Sun: [
+      ["07:30","08:00","Wake / Breakfast","personal"],
+      ["08:00","10:30","BIOL Anki / DSM block","study"],
+      ["10:30","11:00","Break","personal"],
+      ["11:00","13:00","Finish PHYS problem set","study"],
+      ["13:00","13:45","Lunch","personal"],
+      ["13:45","16:00","Flex study block","study"],
+      ["16:00","17:00","Break","personal"],
+      ["17:00","18:30","Weekly planning","study"],
+      ["18:30","19:15","Dinner","personal"],
+      ["19:15","21:30","Protected downtime","personal"],
+      ["21:30","22:30","Wind-down","sleep"],
+    ],
+  };
+
+  const noClassDay = [
+    ["07:30","08:00","Wake / Breakfast","personal"],
+    ["08:00","17:30","Open study block (no classes)","study"],
+    ["17:30","18:15","Dinner","personal"],
+    ["18:15","21:30","Study block","study"],
+    ["21:30","22:30","Wind-down","sleep"],
+  ];
+
+  function weekDates(y,m,d){
+    const out=[]; const start=new Date(y,m,d);
+    for(let i=0;i<7;i++){ const dt=new Date(start); dt.setDate(start.getDate()+i); out.push(dt); }
+    return out;
+  }
+  function dstr(dt){ return dt.toLocaleDateString("en-US",{month:"short",day:"numeric"}); }
+
+  const weeks = [
+    { id:"std", label:"Standard week", range:"Typical week", dates:null,
+      note:"This is the repeating template every ordinary week follows — pick a specific week to see that week's actual deadlines layered on top.",
+      due:{}, overrides:[], crunch:false },
+
+    { id:"w2", label:"Wk 2 · Sep 14", range:"Sep 14–20", dates:weekDates(2026,8,14),
+      note:"<b>MATH 225 Quiz 1</b> lands this week (Tue/Wed tutorial). Give MATH 225 review a bit more weight.",
+      due:{}, overrides:[
+        {day:"Tue", match:"MATH 225", flag:true, append:" — Quiz 1"},
+        {day:"Wed", match:"MATH 225", flag:true, append:" — Quiz 1"},
+      ], crunch:false },
+
+    { id:"w3", label:"Wk 3 · Sep 21", range:"Sep 21–27", dates:weekDates(2026,8,21),
+      note:"BIOL-heavy: <b>Lab 1B</b> in-person, <b>Lecture Quiz 1</b> due Fri, and the first <b>DSM batch (1–7)</b> due Sat.",
+      due:{Thu:["BIOL Lab 1B (in-person)"], Fri:["BIOL Lecture Quiz 1 due"], Sat:["BIOL DSMs 1–7 due"]},
+      overrides:[{day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 1B)"}], crunch:false },
+
+    { id:"w4", label:"Wk 4 · Sep 28", range:"Sep 28–Oct 4", dates:weekDates(2026,8,28),
+      note:"<b>MATH 112 Quiz 1</b> in class Thursday — shift extra review into Tue/Thu MATH 112 blocks. BIOL's \"Stuff You Should Know\" also due Thu.",
+      due:{Thu:["MATH 112 Quiz 1 (in class)","BIOL \"Stuff You Should Know\" due"]},
+      overrides:[{day:"Thu", match:"MATH 112", flag:true, append:" — Quiz 1"}], crunch:false },
+
+    { id:"w5", label:"Wk 5 · Oct 5", range:"Oct 5–11", dates:weekDates(2026,9,5),
+      note:"<b>MATH 225 Quiz 2</b> (moved from the holiday) and <b>PHYS Quiz 1</b> both land this week, plus BIOL Lab 2B in-person.",
+      due:{Thu:["BIOL Lab 2B (in-person)"]},
+      overrides:[
+        {day:"Wed", match:"PHYS 242 — Tutorial", flag:true, append:" — Quiz 1"},
+        {day:"Tue", match:"MATH 225", flag:true, append:" — Quiz 2 (~this week)"},
+      ], crunch:false },
+
+    { id:"rw", label:"Reading Week · Oct 12", range:"Oct 12–16", dates:weekDates(2026,9,12), noClasses:true,
+      note:"No classes. Best week to fully catch up on BIOL DSMs/Anki, bank a PHYS problem set ahead, and start early review for the Week 6 crunch right after this.",
+      due:{}, overrides:[], crunch:false },
+
+    { id:"w6", label:"Wk 6 · Oct 19 ⚑", range:"Oct 19–25", dates:weekDates(2026,9,19),
+      note:"<b>Heaviest week so far.</b> MATH 112 Quiz 2 and COGS 100 Quiz 1 both on Thu Oct 22, BIOL Lecture Quiz 2 due Fri, BIOL Lab 2C in-person. Front-load MATH 112 / COGS 100 review into the weekend before.",
+      due:{Fri:["BIOL Lecture Quiz 2 due"]},
+      overrides:[
+        {day:"Thu", match:"COGS 100", flag:true, append:" — Quiz 1"},
+        {day:"Thu", match:"MATH 112", flag:true, append:" — Quiz 2"},
+        {day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 2C)"},
+      ], crunch:true },
+
+    { id:"w7", label:"Wk 7 · Oct 26 ⚑", range:"Oct 26–Nov 1", dates:weekDates(2026,9,26),
+      note:"<b>PHYS 242 Midterm</b>, Wed Oct 28 — two 45-min parts, one in the lecture slot and one in the tutorial slot. Give Wednesday's long morning and the weekend before entirely to PHYS. BIOL DSMs due Sat.",
+      due:{Sat:["BIOL DSMs 12,13,21 due"], Thu:["BIOL Lab 3A quiz due"]},
+      overrides:[
+        {day:"Wed", match:"PHYS 242 — Lecture", exam:true, newLabel:"PHYS 242 — MIDTERM (Part 1)"},
+        {day:"Wed", match:"PHYS 242 — Tutorial", exam:true, newLabel:"PHYS 242 — MIDTERM (Part 2)"},
+      ], crunch:true },
+
+    { id:"w8", label:"Wk 8 · Nov 2 ⚑", range:"Nov 2–8", dates:weekDates(2026,10,2),
+      note:"<b>BIOL 102 Midterm — Saturday Nov 7, 11am–1pm.</b> This replaces the normal Saturday deep-work block; treat Saturday afternoon as recovery, not study time. COGS 100 Assignment 1 also due Nov 6–8.",
+      due:{Sat:["BIOL 102 MIDTERM · 11am–1pm"], Fri:["COGS 100 Assignment 1 due (–Sun)"]},
+      overrides:[{day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 3B)"}],
+      satOverride:{start:"11:00", end:"13:00", label:"BIOL 102 — MIDTERM EXAM", cat:"exam"},
+      crunch:true },
+
+    { id:"w9", label:"Wk 9 · Nov 9", range:"Nov 9–15", dates:weekDates(2026,10,9),
+      note:"PHYS Quiz 2 (Wed tutorial) and BIOL Lecture Quiz 3 (due Fri) both fall this week — split flex time between them early.",
+      due:{Fri:["BIOL Lecture Quiz 3 due"], Sat:["BIOL DSMs 16–17 due"]},
+      overrides:[{day:"Wed", match:"PHYS 242 — Tutorial", flag:true, append:" — Quiz 2"}], crunch:false },
+
+    { id:"w10", label:"Wk 10 · Nov 16", range:"Nov 16–22", dates:weekDates(2026,10,16),
+      note:"Lighter on paper — just a BIOL lab quiz Thursday. Good week to get ahead on MATH 112 / COGS 100 / PHYS review before Week 11.",
+      due:{Thu:["BIOL Lab 4A quiz due"]}, overrides:[], crunch:false },
+
+    { id:"w11", label:"Wk 11 · Nov 23 ⚑", range:"Nov 23–29", dates:weekDates(2026,10,23),
+      note:"<b>Hardest week of the term.</b> PHYS Quiz 3 (Wed), MATH 112 Quiz 3 &amp; COGS 100 Quiz 2 both Thu, COGS tutorial Fri (time TBC), BIOL Lab 4B in-person, BIOL DSMs due Sat. Start review for the Nov 25–26 assessments the weekend before — there isn't enough room inside this week alone.",
+      due:{Fri:["COGS 100 tutorial (time TBC)"], Sat:["BIOL DSMs 18,20 due"]},
+      overrides:[
+        {day:"Wed", match:"PHYS 242 — Tutorial", flag:true, append:" — Quiz 3"},
+        {day:"Thu", match:"MATH 112", flag:true, append:" — Quiz 3"},
+        {day:"Thu", match:"COGS 100", flag:true, append:" — Quiz 2"},
+        {day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 4B)"},
+      ], crunch:true },
+
+    { id:"w12", label:"Wk 12 · Nov 30", range:"Nov 30–Dec 4", dates:weekDates(2026,10,30),
+      note:"Closes out BIOL's term work: Lecture Quiz 4 (Fri) and the final DSM batch (Sat). Final exam dates should be posted on SOLUS by now — once confirmed, come back and block review time in the Sunday planning slot.",
+      due:{Fri:["BIOL Lecture Quiz 4 due"], Sat:["Final BIOL DSM batch due"]}, overrides:[], crunch:false },
+
+    { id:"exam", label:"Exam period · Dec", range:"December (dates TBA)", dates:null, noClasses:true,
+      note:"All five finals fall in this window — exact dates weren't published in any syllabus yet. MATH 112 (55% final weight + the 38% pass floor) and MATH 225 (60% final weight) should get first claim on review time, with COGS 100 (50% final weight) close behind. Come back and fill in real dates once SOLUS posts them.",
+      due:{}, overrides:[], crunch:false },
+  ];
+
+  // ---- Fill these in once SOLUS publishes exam dates, e.g. localDate(2026,11,10) for Dec 10, 2026 ----
+  const examDates = { BIOL102:null, COGS100:null, MATH112:null, MATH225:null, PHYS242:null };
+
+  const COURSE_NAMES = { BIOL102:"BIOL 102", COGS100:"COGS 100", MATH112:"MATH 112", MATH225:"MATH 225", PHYS242:"PHYS 242" };
+  const COURSE_COLOR = { BIOL102:"sport", COGS100:"commute", MATH112:"study", MATH225:"personal", PHYS242:"sleep" };
+
+  function detectCourse(text){
+    text = text || "";
+    if(text.indexOf("MATH 225")!==-1) return "MATH225";
+    if(text.indexOf("MATH 112")!==-1) return "MATH112";
+    if(text.indexOf("BIOL")!==-1) return "BIOL102";
+    if(text.indexOf("COGS")!==-1) return "COGS100";
+    if(text.indexOf("PHYS")!==-1) return "PHYS242";
+    return "OTHER";
+  }
+  function stripPart(s){ return s.replace(/\s*\(Part\s*\d+\)\s*$/i,"").trim(); }
+
+  // ---- deadlines are derived from the weeks[] data above, not re-typed, so editing a
+  // due{} entry or an override updates the calendar, the to-do tab and progress together.
+  function buildDeadlines(){
+    const items = [];
+    const seenOv = new Set();
+    // A due{} entry already covering a lab in-person session (e.g. "BIOL Lab 1B
+    // (in-person)") means the matching "flag the lab block" override describes
+    // the same real-world deadline — skip the override copy so it isn't double-counted.
+    const dueLabDays = new Set();
+    const dueExamDays = new Set();
+    weeks.forEach(week=>{
+      Object.keys(week.due||{}).forEach(day=>{
+        (week.due[day]||[]).forEach(text=>{
+          if(/lab/i.test(text)) dueLabDays.add(week.id+"|"+day);
+          if(/midterm/i.test(text)) dueExamDays.add(week.id+"|"+day);
+        });
+      });
+    });
+    weeks.forEach(week=>{
+      Object.keys(week.due||{}).forEach(day=>{
+        (week.due[day]||[]).forEach((text,idx)=>{
+          const course = detectCourse(text);
+          const kind = /midterm/i.test(text) ? "exam" : /quiz/i.test(text) ? "quiz" : /lab/i.test(text) ? "lab" : "task";
+          items.push({ id:"due-"+week.id+"-"+day+"-"+idx, weekId:week.id, day, date:null, text, course, kind });
+        });
+      });
+      (week.overrides||[]).forEach(ov=>{
+        if(!ov.flag && !ov.exam) return;
+        const kind = ov.exam ? "exam" : /lab/i.test(ov.match||"") ? "lab" : "quiz";
+        if(kind==="lab" && dueLabDays.has(week.id+"|"+ov.day)) return;
+        const rawText = ov.newLabel ? stripPart(ov.newLabel) : ((ov.match||"") + (ov.append||""));
+        const course = detectCourse(ov.match || ov.newLabel || "");
+        const dedupKey = week.id+"|"+course+"|"+kind+"|"+rawText;
+        if(seenOv.has(dedupKey)) return;
+        seenOv.add(dedupKey);
+        items.push({ id:"ov-"+dedupKey, weekId:week.id, day:ov.day, date:null, text:rawText, course, kind });
+      });
+      if(week.satOverride && !dueExamDays.has(week.id+"|Sat")){
+        const so = week.satOverride;
+        items.push({ id:"sat-"+week.id, weekId:week.id, day:"Sat", date:null, text:so.label, course:detectCourse(so.label), kind:"exam" });
+      }
+    });
+    Object.keys(COURSE_NAMES).forEach(c=>{
+      const d = examDates[c];
+      items.push({ id:"final-"+c, weekId:"exam", day:null, date:d||null, text:COURSE_NAMES[c]+" Final Exam", course:c, kind:"final", tba:!d });
+    });
+    return items;
+  }
+  function resolveDeadlineDate(item){
+    if(item.date) return item.date;
+    if(!item.day) return null;
+    const week = weeks.find(w=>w.id===item.weekId);
+    if(!week || !week.dates) return null;
+    const idx = DAYS.indexOf(item.day);
+    if(idx<0) return null;
+    return week.dates[idx];
+  }
+  const DEADLINES = buildDeadlines();
+
+  // ---- done-state store (localStorage) ----
+  const DONE_KEY = "semcal-done-v1";
+  function loadDone(){ try{ return JSON.parse(localStorage.getItem(DONE_KEY)||"{}"); }catch(e){ return {}; } }
+  let doneState = loadDone();
+  function isDone(id){ return !!doneState[id]; }
+  function setDone(id,val){
+    if(val) doneState[id]=true; else delete doneState[id];
+    try{ localStorage.setItem(DONE_KEY, JSON.stringify(doneState)); }catch(e){}
+  }
+  function toggleDone(id){ setDone(id, !isDone(id)); refreshAll(); }
+
+  const legendItems = [
+    ["class","Class / lecture / lab"],
+    ["study","Study block"],
+    ["commute","Walk to/from campus"],
+    ["sport","Soccer"],
+    ["sleep","Sleep &amp; wind-down"],
+    ["personal","Meals &amp; downtime"],
+  ];
+  const legendEl = document.getElementById("legend");
+  legendItems.forEach(([cat,label])=>{
+    const d=document.createElement("div"); d.className="item";
+    d.innerHTML = `<span class="swatch" style="background:var(--${cat})"></span>${label}`;
+    legendEl.appendChild(d);
+  });
+  const flagLegend = document.createElement("div"); flagLegend.className="item";
+  flagLegend.innerHTML = `<span class="swatch flagged"></span>Quiz / exam flagged on that block`;
+  legendEl.appendChild(flagLegend);
+
+  const weekbarEl = document.getElementById("weekbar");
+  weeks.forEach(w=>{
+    const b=document.createElement("button");
+    b.textContent=w.label; b.dataset.id=w.id;
+    b.addEventListener("click",()=>render(w.id));
+    weekbarEl.appendChild(b);
+  });
+  function setActive(id){ [...weekbarEl.children].forEach(b=> b.classList.toggle("active", b.dataset.id===id)); }
+
+  function buildDayBlocks(week, day){
+    let blocks = (week.noClasses && day!=="Sat" && day!=="Sun") ? noClassDay.map(b=>b.slice()) : base[day].map(b=>b.slice());
+
+    if(week.satOverride && day==="Sat"){
+      const so = week.satOverride;
+      const soStart = toMin(so.start), soEnd = toMin(so.end);
+      const newBlocks = []; let inserted=false;
+      blocks.forEach(b=>{
+        const [s,e,l,c] = b;
+        const sMin=toMin(s), eMin=toMin(e);
+        if(sMin < soEnd && eMin > soStart){
+          if(sMin < soStart) newBlocks.push([s, so.start, l, c]);
+          if(!inserted){ newBlocks.push([so.start, so.end, so.label, so.cat]); inserted=true; }
+          if(eMin > soEnd) newBlocks.push([so.end, e, l, c]);
+        } else {
+          newBlocks.push(b);
+        }
+      });
+      blocks = newBlocks;
+    }
+
+    (week.overrides||[]).forEach(ov=>{
+      if(ov.day!==day) return;
+      blocks.forEach(b=>{
+        if(b[2].indexOf(ov.match)!==-1){
+          if(ov.exam){ b[2]=ov.newLabel; b[3]="exam"; }
+          if(ov.append) b[2]=b[2]+ov.append;
+          if(ov.flag) b[4]="flag";
+        }
+      });
+    });
+    return blocks;
+  }
+
+  let currentWeekId = "std";
+
+  function render(id){
+    currentWeekId = id;
+    const week = weeks.find(w=>w.id===id);
+    setActive(id);
+    document.getElementById("weeknote").innerHTML = (week.range==="Typical week" ? "" : `<b>${week.range}.</b> `) + week.note;
+
+    const calwrap = document.getElementById("calwrap");
+    calwrap.innerHTML = "";
+    calwrap.style.setProperty("--hr", HOUR_PX+"px");
+
+    // time column
+    const timecol = document.createElement("div");
+    timecol.className = "timecol timeline-bg";
+    timecol.style.height = (TOTAL_MIN*PPM)+"px";
+    for(let m=START_MIN; m<=END_MIN; m+=60){
+      const h = Math.floor(m/60); const ap = h>=12?"pm":"am"; let h12=h%12; if(h12===0)h12=12;
+      const lbl = document.createElement("div");
+      lbl.className = "hourlabel";
+      lbl.style.top = ((m-START_MIN)*PPM)+"px";
+      lbl.textContent = h12+ap;
+      timecol.appendChild(lbl);
+    }
+
+    const headTimeCell = document.createElement("div");
+    headTimeCell.className = "headcell timehead";
+
+    const headrow = document.createElement("div");
+    headrow.className = "headrow";
+    headrow.appendChild(headTimeCell);
+
+    const bodyrow = document.createElement("div");
+    bodyrow.className = "bodyrow";
+    bodyrow.appendChild(timecol);
+
+    DAYS.forEach((day,i)=>{
+      const head = document.createElement("div");
+      head.className = "headcell";
+      const dateLabel = week.dates ? dstr(week.dates[i]) : "";
+      const dueList = (week.due && week.due[day]) || [];
+      head.innerHTML = `<div class="dayname">${DAYFULL[i]}</div><div class="daydate mono">${dateLabel}</div>
+        <div class="duewrap">${dueList.map((t,idx)=>{
+          const did = "due-"+week.id+"-"+day+"-"+idx;
+          const done = isDone(did);
+          return `<label class="duetag${done?" done":""}"><input type="checkbox" data-id="${did}" ${done?"checked":""}><span>${t}</span></label>`;
+        }).join("")}</div>`;
+      headrow.appendChild(head);
+      head.querySelectorAll(".duetag input[type=checkbox]").forEach(cb=>{
+        cb.addEventListener("change", ()=> toggleDone(cb.dataset.id));
+      });
+
+      const col = document.createElement("div");
+      col.className = "daycol timeline-bg";
+      col.style.height = (TOTAL_MIN*PPM)+"px";
+
+      buildDayBlocks(week, day).forEach(b=>{
+        const [start,end,label,cat,flagMark] = b;
+        const top = (toMin(start)-START_MIN)*PPM;
+        const height = (toMin(end)-toMin(start))*PPM;
+        const div = document.createElement("div");
+        const blockId = cat==="study" ? ("blk-"+week.id+"-"+day+"-"+start) : null;
+        const done = blockId ? isDone(blockId) : false;
+        div.className = "block " + cat + (flagMark ? " flagged" : "") + (done ? " done" : "");
+        div.style.top = top+"px";
+        div.style.height = Math.max(height,16)+"px";
+        const checkHtml = blockId ? `<input type="checkbox" class="block-check" ${done?"checked":""} aria-label="Mark done">` : "";
+        div.innerHTML = `<span class="t">${checkHtml}${fmt(start)}–${fmt(end)}</span><span class="l">${label}</span>`;
+        if(blockId){
+          div.querySelector(".block-check").addEventListener("click", e=>{
+            e.stopPropagation();
+            toggleDone(blockId);
+          });
+        }
+        col.appendChild(div);
+      });
+
+      bodyrow.appendChild(col);
+    });
+
+    calwrap.style.flexDirection = "column";
+    calwrap.appendChild(headrow);
+    calwrap.appendChild(bodyrow);
+  }
+
+  // ---- to-do tab ----
+  function todoRowHtml(item, small){
+    const date = resolveDeadlineDate(item);
+    const done = isDone(item.id);
+    const today = new Date(); today.setHours(0,0,0,0);
+    const overdue = date && date < today && !done;
+    const dateStr = date ? date.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}) : "TBA";
+    const color = "var(--"+(COURSE_COLOR[item.course]||"class")+")";
+    return `<label class="todo-row${small?" small":""}${done?" done":""}${overdue?" overdue":""}">
+      <input type="checkbox" data-id="${item.id}" ${done?"checked":""} style="accent-color:${color}">
+      ${small?"":`<span class="todo-course" style="color:${color}">${COURSE_NAMES[item.course]||item.course}</span>`}
+      <span class="todo-text">${item.text}</span>
+      <span class="todo-date mono">${dateStr}</span>
+    </label>`;
+  }
+
+  function renderTodo(){
+    const el = document.getElementById("todolist");
+    const rows = DEADLINES.map(item=>{
+      const date = resolveDeadlineDate(item);
+      return { item, sortKey: date ? date.getTime() : Infinity };
+    }).sort((a,b)=> a.sortKey-b.sortKey);
+
+    if(!rows.length){ el.innerHTML = `<div class="todo-empty">Nothing on the list.</div>`; return; }
+    el.innerHTML = rows.map(r=> todoRowHtml(r.item,false)).join("");
+    el.querySelectorAll("input[type=checkbox]").forEach(cb=>{
+      cb.addEventListener("change", ()=> toggleDone(cb.dataset.id));
+    });
+  }
+
+  // ---- progress tab ----
+  function renderProgress(){
+    const el = document.getElementById("proglist");
+    const courses = Object.keys(COURSE_NAMES);
+    el.innerHTML = courses.map(c=>{
+      const items = DEADLINES.filter(i=>i.course===c).sort((a,b)=>{
+        const da = resolveDeadlineDate(a), db = resolveDeadlineDate(b);
+        return (da?da.getTime():Infinity) - (db?db.getTime():Infinity);
+      });
+      const doneCount = items.filter(i=>isDone(i.id)).length;
+      const pct = items.length ? Math.round(doneCount/items.length*100) : 0;
+      const color = "var(--"+COURSE_COLOR[c]+")";
+      return `<div class="course-card">
+        <div class="course-head">
+          <span class="course-name" style="color:${color}">${COURSE_NAMES[c]}</span>
+          <span class="course-count mono">${doneCount}/${items.length} done</span>
+        </div>
+        <div class="course-bar-track"><div class="course-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+        <div class="course-items">${items.map(i=>todoRowHtml(i,true)).join("")}</div>
+      </div>`;
+    }).join("");
+    el.querySelectorAll("input[type=checkbox]").forEach(cb=>{
+      cb.addEventListener("change", ()=> toggleDone(cb.dataset.id));
+    });
+  }
+
+  // ---- now strip ----
+  function resolveWeekForDate(date){
+    for(const w of weeks){
+      if(!w.dates) continue;
+      const start = new Date(w.dates[0]); start.setHours(0,0,0,0);
+      const end = new Date(w.dates[6]); end.setHours(23,59,59,999);
+      if(date>=start && date<=end) return w;
+    }
+    return null;
+  }
+
+  function renderNowStrip(){
+    const el = document.getElementById("nowstrip");
+    const now = new Date();
+    const week = resolveWeekForDate(now);
+    let html = "";
+
+    if(week && !week.noClasses){
+      const dayIdx = (now.getDay()+6)%7;
+      const dayName = DAYS[dayIdx];
+      const nowMin = now.getHours()*60 + now.getMinutes();
+      const blocks = buildDayBlocks(week, dayName);
+      let current=null, next=null;
+      for(const b of blocks){
+        const s=toMin(b[0]), e=toMin(b[1]);
+        if(nowMin>=s && nowMin<e) current=b;
+        if(nowMin<s && !next) next=b;
+      }
+      if(!next && dayIdx<6){
+        const tBlocks = buildDayBlocks(week, DAYS[dayIdx+1]);
+        if(tBlocks.length) next = tBlocks[0];
+      }
+      if(current){
+        html += `<div class="now-pill current"><span class="now-label">Now</span> ${current[2]}<span class="mono">until ${fmt(current[1])}</span></div>`;
+      }
+      if(next){
+        html += `<div class="now-pill next"><span class="now-label">Next</span> ${next[2]}<span class="mono">${fmt(next[0])}</span></div>`;
+      }
+      if(!current && !next){
+        html += `<div class="now-pill">Day's done — rest up.</div>`;
+      }
+    } else {
+      html += `<div class="now-pill">No fixed schedule today${week ? " ("+week.label+")" : ""}.</div>`;
+    }
+
+    const today = new Date(); today.setHours(0,0,0,0);
+    const upcoming = DEADLINES
+      .map(item=>({ item, date: resolveDeadlineDate(item) }))
+      .filter(x=> x.date && x.date>=today && !isDone(x.item.id))
+      .sort((a,b)=> a.date-b.date);
+    if(upcoming.length){
+      const {item,date} = upcoming[0];
+      const days = Math.round((date-today)/86400000);
+      const when = days===0 ? "today" : days===1 ? "tomorrow" : `in ${days}d`;
+      const courseName = COURSE_NAMES[item.course]||"";
+      const label = item.text.indexOf(courseName)===0 ? item.text : (courseName+" "+item.text).trim();
+      html += `<div class="now-pill deadline"><span class="now-label">Next due</span> ${label}<span class="mono">${when}</span></div>`;
+    }
+
+    el.innerHTML = html;
+  }
+
+  function refreshAll(){
+    render(currentWeekId);
+    renderTodo();
+    renderProgress();
+    renderNowStrip();
+  }
+
+  // ---- tabs ----
+  document.getElementById("tabbar").addEventListener("click", e=>{
+    const btn = e.target.closest("button[data-tab]");
+    if(!btn) return;
+    [...document.querySelectorAll("#tabbar button")].forEach(b=> b.classList.toggle("active", b===btn));
+    const tab = btn.dataset.tab;
+    document.getElementById("view-cal").hidden = tab!=="cal";
+    document.getElementById("view-todo").hidden = tab!=="todo";
+    document.getElementById("view-prog").hidden = tab!=="prog";
+    if(tab==="todo") renderTodo();
+    if(tab==="prog") renderProgress();
+  });
+
+  render("std");
+  renderTodo();
+  renderProgress();
+  renderNowStrip();
+  setInterval(renderNowStrip, 30000);
+
+  if("serviceWorker" in navigator){
+    window.addEventListener("load", ()=>{
+      navigator.serviceWorker.register("sw.js").catch(()=>{});
+    });
+  }
+})();
+</script>
