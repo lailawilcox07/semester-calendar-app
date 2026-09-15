@@ -175,10 +175,12 @@
   .todo-course{font-size:11px; font-weight:700; letter-spacing:.02em; flex:none; min-width:62px;}
   .todo-text{flex:1;}
   .todo-date{font-size:11.5px; color:var(--muted); flex:none; white-space:nowrap;}
+  .todo-weight{font-size:11px; color:var(--muted); flex:none; white-space:nowrap; opacity:.85;}
   .todo-row.done{opacity:.5;}
   .todo-row.done .todo-text{text-decoration:line-through;}
   .todo-row.overdue .todo-date{color:var(--flag); font-weight:600;}
   .todo-empty{color:var(--muted); font-size:13.5px; padding:20px 4px;}
+  .todo-divider{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:700; margin:16px 4px 8px;}
 
   .proglist{display:flex; flex-direction:column; gap:14px;}
   .course-card{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px;}
@@ -375,26 +377,33 @@
     { id:"w2", label:"Wk 2 · Sep 14", range:"Sep 14–20", dates:weekDates(2026,8,14),
       note:"<b>MATH 225 Quiz 1</b> lands this week (Tue/Wed tutorial). Give MATH 225 review a bit more weight.",
       due:{}, overrides:[
-        {day:"Tue", match:"MATH 225", flag:true, append:" — Quiz 1"},
-        {day:"Wed", match:"MATH 225", flag:true, append:" — Quiz 1"},
+        {day:"Tue", match:"MATH 225", flag:true, append:" — Quiz 1", weight:10},
+        {day:"Wed", match:"MATH 225", flag:true, append:" — Quiz 1", weight:10},
       ], crunch:false },
 
     { id:"w3", label:"Wk 3 · Sep 21", range:"Sep 21–27", dates:weekDates(2026,8,21),
       note:"BIOL-heavy: <b>Lab 1B</b> in-person, <b>Lecture Quiz 1</b> due Fri, and the first <b>DSM batch (1–7)</b> due Sat.",
-      due:{Thu:["BIOL Lab 1B (in-person)"], Fri:["BIOL Lecture Quiz 1 due"], Sat:["BIOL DSMs 1–7 due"]},
-      overrides:[{day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 1B)"}], crunch:false },
+      due:{
+        Thu:[{text:"BIOL Lab 1B (in-person)", weight:4}],
+        Fri:[{text:"BIOL Lecture Quiz 1 due", weight:5}],
+        Sat:[{text:"BIOL DSMs 1–7 due", weight:2.67}],
+      },
+      overrides:[{day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 1B)", weight:4}], crunch:false },
 
     { id:"w4", label:"Wk 4 · Sep 28", range:"Sep 28–Oct 4", dates:weekDates(2026,8,28),
       note:"<b>MATH 112 Quiz 1</b> in class Thursday — shift extra review into Tue/Thu MATH 112 blocks. BIOL's \"Stuff You Should Know\" also due Thu.",
-      due:{Thu:["MATH 112 Quiz 1 (in class)","BIOL \"Stuff You Should Know\" due"]},
-      overrides:[{day:"Thu", match:"MATH 112", flag:true, append:" — Quiz 1"}], crunch:false },
+      due:{Thu:[
+        {text:"MATH 112 Quiz 1 (in class)", weight:15},
+        {text:"BIOL \"Stuff You Should Know\" due", weight:1},
+      ]},
+      overrides:[{day:"Thu", match:"MATH 112", flag:true, append:" — Quiz 1", weight:15}], crunch:false },
 
     { id:"w5", label:"Wk 5 · Oct 5", range:"Oct 5–11", dates:weekDates(2026,9,5),
       note:"<b>MATH 225 Quiz 2</b> (moved from the holiday) and <b>PHYS Quiz 1</b> both land this week, plus BIOL Lab 2B in-person.",
-      due:{Thu:["BIOL Lab 2B (in-person)"]},
+      due:{Thu:[{text:"BIOL Lab 2B (in-person)", weight:4}]},
       overrides:[
-        {day:"Wed", match:"PHYS 242 — Tutorial", flag:true, append:" — Quiz 1"},
-        {day:"Tue", match:"MATH 225", flag:true, append:" — Quiz 2 (~this week)"},
+        {day:"Wed", match:"PHYS 242 — Tutorial", flag:true, append:" — Quiz 1", weight:4},
+        {day:"Tue", match:"MATH 225", flag:true, append:" — Quiz 2 (~this week)", weight:10},
       ], crunch:false },
 
     { id:"rw", label:"Reading Week · Oct 12", range:"Oct 12–16", dates:weekDates(2026,9,12), noClasses:true,
@@ -403,50 +412,65 @@
 
     { id:"w6", label:"Wk 6 · Oct 19 ⚑", range:"Oct 19–25", dates:weekDates(2026,9,19),
       note:"<b>Heaviest week so far.</b> MATH 112 Quiz 2 and COGS 100 Quiz 1 both on Thu Oct 22, BIOL Lecture Quiz 2 due Fri, BIOL Lab 2C in-person. Front-load MATH 112 / COGS 100 review into the weekend before.",
-      due:{Fri:["BIOL Lecture Quiz 2 due"]},
+      due:{Fri:[{text:"BIOL Lecture Quiz 2 due", weight:5}]},
       overrides:[
-        {day:"Thu", match:"COGS 100", flag:true, append:" — Quiz 1"},
-        {day:"Thu", match:"MATH 112", flag:true, append:" — Quiz 2"},
-        {day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 2C)"},
+        {day:"Thu", match:"COGS 100", flag:true, append:" — Quiz 1", weight:20},
+        {day:"Thu", match:"MATH 112", flag:true, append:" — Quiz 2", weight:15},
+        {day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 2C)", weight:4},
       ], crunch:true },
 
     { id:"w7", label:"Wk 7 · Oct 26 ⚑", range:"Oct 26–Nov 1", dates:weekDates(2026,9,26),
       note:"<b>PHYS 242 Midterm</b>, Wed Oct 28 — two 45-min parts, one in the lecture slot and one in the tutorial slot. Give Wednesday's long morning and the weekend before entirely to PHYS. BIOL DSMs due Sat.",
-      due:{Sat:["BIOL DSMs 12,13,21 due"], Thu:["BIOL Lab 3A quiz due"]},
+      due:{
+        Sat:[{text:"BIOL DSMs 12,13,21 due", weight:1.14}],
+        Thu:[{text:"BIOL Lab 3A quiz due", weight:2}],
+      },
       overrides:[
-        {day:"Wed", match:"PHYS 242 — Lecture", exam:true, newLabel:"PHYS 242 — MIDTERM (Part 1)"},
-        {day:"Wed", match:"PHYS 242 — Tutorial", exam:true, newLabel:"PHYS 242 — MIDTERM (Part 2)"},
+        {day:"Wed", match:"PHYS 242 — Lecture", exam:true, newLabel:"PHYS 242 — MIDTERM (Part 1)", weight:20},
+        {day:"Wed", match:"PHYS 242 — Tutorial", exam:true, newLabel:"PHYS 242 — MIDTERM (Part 2)", weight:20},
       ], crunch:true },
 
     { id:"w8", label:"Wk 8 · Nov 2 ⚑", range:"Nov 2–8", dates:weekDates(2026,10,2),
       note:"<b>BIOL 102 Midterm — Saturday Nov 7, 11am–1pm.</b> This replaces the normal Saturday deep-work block; treat Saturday afternoon as recovery, not study time. COGS 100 Assignment 1 also due Nov 6–8.",
-      due:{Sat:["BIOL 102 MIDTERM · 11am–1pm"], Fri:["COGS 100 Assignment 1 due (–Sun)"]},
-      overrides:[{day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 3B)"}],
-      satOverride:{start:"11:00", end:"13:00", label:"BIOL 102 — MIDTERM EXAM", cat:"exam"},
+      due:{
+        Sat:[{text:"BIOL 102 MIDTERM · 11am–1pm", weight:20}],
+        Fri:[{text:"COGS 100 Assignment 1 due (–Sun)", weight:10}],
+      },
+      overrides:[{day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 3B)", weight:4}],
+      satOverride:{start:"11:00", end:"13:00", label:"BIOL 102 — MIDTERM EXAM", cat:"exam", weight:20},
       crunch:true },
 
     { id:"w9", label:"Wk 9 · Nov 9", range:"Nov 9–15", dates:weekDates(2026,10,9),
       note:"PHYS Quiz 2 (Wed tutorial) and BIOL Lecture Quiz 3 (due Fri) both fall this week — split flex time between them early.",
-      due:{Fri:["BIOL Lecture Quiz 3 due"], Sat:["BIOL DSMs 16–17 due"]},
-      overrides:[{day:"Wed", match:"PHYS 242 — Tutorial", flag:true, append:" — Quiz 2"}], crunch:false },
+      due:{
+        Fri:[{text:"BIOL Lecture Quiz 3 due", weight:5}],
+        Sat:[{text:"BIOL DSMs 16–17 due", weight:0.76}],
+      },
+      overrides:[{day:"Wed", match:"PHYS 242 — Tutorial", flag:true, append:" — Quiz 2", weight:4}], crunch:false },
 
     { id:"w10", label:"Wk 10 · Nov 16", range:"Nov 16–22", dates:weekDates(2026,10,16),
       note:"Lighter on paper — just a BIOL lab quiz Thursday. Good week to get ahead on MATH 112 / COGS 100 / PHYS review before Week 11.",
-      due:{Thu:["BIOL Lab 4A quiz due"]}, overrides:[], crunch:false },
+      due:{Thu:[{text:"BIOL Lab 4A quiz due", weight:2}]}, overrides:[], crunch:false },
 
     { id:"w11", label:"Wk 11 · Nov 23 ⚑", range:"Nov 23–29", dates:weekDates(2026,10,23),
       note:"<b>Hardest week of the term.</b> PHYS Quiz 3 (Wed), MATH 112 Quiz 3 &amp; COGS 100 Quiz 2 both Thu, COGS tutorial Fri (time TBC), BIOL Lab 4B in-person, BIOL DSMs due Sat. Start review for the Nov 25–26 assessments the weekend before — there isn't enough room inside this week alone.",
-      due:{Fri:["COGS 100 tutorial (time TBC)"], Sat:["BIOL DSMs 18,20 due"]},
+      due:{
+        Fri:[{text:"COGS 100 tutorial (time TBC)", weight:0}],
+        Sat:[{text:"BIOL DSMs 18,20 due", weight:0.76}],
+      },
       overrides:[
-        {day:"Wed", match:"PHYS 242 — Tutorial", flag:true, append:" — Quiz 3"},
-        {day:"Thu", match:"MATH 112", flag:true, append:" — Quiz 3"},
-        {day:"Thu", match:"COGS 100", flag:true, append:" — Quiz 2"},
-        {day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 4B)"},
+        {day:"Wed", match:"PHYS 242 — Tutorial", flag:true, append:" — Quiz 3", weight:4},
+        {day:"Thu", match:"MATH 112", flag:true, append:" — Quiz 3", weight:15},
+        {day:"Thu", match:"COGS 100", flag:true, append:" — Quiz 2", weight:20},
+        {day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 4B)", weight:4},
       ], crunch:true },
 
     { id:"w12", label:"Wk 12 · Nov 30", range:"Nov 30–Dec 4", dates:weekDates(2026,10,30),
       note:"Closes out BIOL's term work: Lecture Quiz 4 (Fri) and the final DSM batch (Sat). Final exam dates should be posted on SOLUS by now — once confirmed, come back and block review time in the Sunday planning slot.",
-      due:{Fri:["BIOL Lecture Quiz 4 due"], Sat:["Final BIOL DSM batch due"]}, overrides:[], crunch:false },
+      due:{
+        Fri:[{text:"BIOL Lecture Quiz 4 due", weight:5}],
+        Sat:[{text:"Final BIOL DSM batch due", weight:2.67}],
+      }, overrides:[], crunch:false },
 
     { id:"exam", label:"Exam period · Dec", range:"December (dates TBA)", dates:null, noClasses:true,
       note:"All five finals fall in this window — exact dates weren't published in any syllabus yet. MATH 112 (55% final weight + the 38% pass floor) and MATH 225 (60% final weight) should get first claim on review time, with COGS 100 (50% final weight) close behind. Come back and fill in real dates once SOLUS posts them.",
@@ -458,6 +482,8 @@
 
   const COURSE_NAMES = { BIOL102:"BIOL 102", COGS100:"COGS 100", MATH112:"MATH 112", MATH225:"MATH 225", PHYS242:"PHYS 242" };
   const COURSE_COLOR = { BIOL102:"sport", COGS100:"commute", MATH112:"study", MATH225:"personal", PHYS242:"sleep" };
+  // % of final grade each course's final exam is worth (per course syllabus).
+  const FINAL_WEIGHT = { BIOL102:20, COGS100:50, MATH112:55, MATH225:60, PHYS242:45 };
 
   function detectCourse(text){
     text = text || "";
@@ -471,50 +497,54 @@
   function stripPart(s){ return s.replace(/\s*\(Part\s*\d+\)\s*$/i,"").trim(); }
 
   // ---- deadlines are derived from the weeks[] data above, not re-typed, so editing a
-  // due{} entry or an override updates the calendar, the to-do tab and progress together.
+  // due{} entry or an override (including its weight — % of the course grade it's
+  // worth) updates the calendar, the to-do tab, priority order and progress together.
   function buildDeadlines(){
     const items = [];
     const seenOv = new Set();
-    // A due{} entry already covering a lab in-person session (e.g. "BIOL Lab 1B
-    // (in-person)") means the matching "flag the lab block" override describes
-    // the same real-world deadline — skip the override copy so it isn't double-counted.
-    const dueLabDays = new Set();
-    const dueExamDays = new Set();
+    // A due{} entry already covering a lab-in-person session or a midterm (e.g.
+    // "BIOL Lab 1B (in-person)", "BIOL 102 MIDTERM · 11am–1pm") means the matching
+    // "flag the block" override/satOverride describes the same real-world deadline
+    // — skip that copy so it isn't double-counted.
+    const dueCovered = new Set();
     weeks.forEach(week=>{
       Object.keys(week.due||{}).forEach(day=>{
-        (week.due[day]||[]).forEach(text=>{
-          if(/lab/i.test(text)) dueLabDays.add(week.id+"|"+day);
-          if(/midterm/i.test(text)) dueExamDays.add(week.id+"|"+day);
+        (week.due[day]||[]).forEach(entry=>{
+          const text = entry.text;
+          if(/lab/i.test(text)) dueCovered.add(week.id+"|"+day+"|lab");
+          if(/midterm/i.test(text)) dueCovered.add(week.id+"|"+day+"|exam");
+          if(/quiz/i.test(text)) dueCovered.add(week.id+"|"+day+"|quiz");
         });
       });
     });
     weeks.forEach(week=>{
       Object.keys(week.due||{}).forEach(day=>{
-        (week.due[day]||[]).forEach((text,idx)=>{
+        (week.due[day]||[]).forEach((entry,idx)=>{
+          const text = entry.text;
           const course = detectCourse(text);
           const kind = /midterm/i.test(text) ? "exam" : /quiz/i.test(text) ? "quiz" : /lab/i.test(text) ? "lab" : "task";
-          items.push({ id:"due-"+week.id+"-"+day+"-"+idx, weekId:week.id, day, date:null, text, course, kind });
+          items.push({ id:"due-"+week.id+"-"+day+"-"+idx, weekId:week.id, day, date:null, text, course, kind, weight:entry.weight||0 });
         });
       });
       (week.overrides||[]).forEach(ov=>{
         if(!ov.flag && !ov.exam) return;
         const kind = ov.exam ? "exam" : /lab/i.test(ov.match||"") ? "lab" : "quiz";
-        if(kind==="lab" && dueLabDays.has(week.id+"|"+ov.day)) return;
+        if(dueCovered.has(week.id+"|"+ov.day+"|"+kind)) return;
         const rawText = ov.newLabel ? stripPart(ov.newLabel) : ((ov.match||"") + (ov.append||""));
         const course = detectCourse(ov.match || ov.newLabel || "");
         const dedupKey = week.id+"|"+course+"|"+kind+"|"+rawText;
         if(seenOv.has(dedupKey)) return;
         seenOv.add(dedupKey);
-        items.push({ id:"ov-"+dedupKey, weekId:week.id, day:ov.day, date:null, text:rawText, course, kind });
+        items.push({ id:"ov-"+dedupKey, weekId:week.id, day:ov.day, date:null, text:rawText, course, kind, weight:ov.weight||0 });
       });
-      if(week.satOverride && !dueExamDays.has(week.id+"|Sat")){
+      if(week.satOverride && !dueCovered.has(week.id+"|Sat|exam")){
         const so = week.satOverride;
-        items.push({ id:"sat-"+week.id, weekId:week.id, day:"Sat", date:null, text:so.label, course:detectCourse(so.label), kind:"exam" });
+        items.push({ id:"sat-"+week.id, weekId:week.id, day:"Sat", date:null, text:so.label, course:detectCourse(so.label), kind:"exam", weight:so.weight||0 });
       }
     });
     Object.keys(COURSE_NAMES).forEach(c=>{
       const d = examDates[c];
-      items.push({ id:"final-"+c, weekId:"exam", day:null, date:d||null, text:COURSE_NAMES[c]+" Final Exam", course:c, kind:"final", tba:!d });
+      items.push({ id:"final-"+c, weekId:"exam", day:null, date:d||null, text:COURSE_NAMES[c]+" Final Exam", course:c, kind:"final", tba:!d, weight:FINAL_WEIGHT[c]||0 });
     });
     return items;
   }
@@ -643,10 +673,10 @@
       const dateLabel = week.dates ? dstr(week.dates[i]) : "";
       const dueList = (week.due && week.due[day]) || [];
       head.innerHTML = `<div class="dayname">${DAYFULL[i]}</div><div class="daydate mono">${dateLabel}</div>
-        <div class="duewrap">${dueList.map((t,idx)=>{
+        <div class="duewrap">${dueList.map((entry,idx)=>{
           const did = "due-"+week.id+"-"+day+"-"+idx;
           const done = isDone(did);
-          return `<label class="duetag${done?" done":""}"><input type="checkbox" data-id="${did}" ${done?"checked":""}><span>${t}</span></label>`;
+          return `<label class="duetag${done?" done":""}"><input type="checkbox" data-id="${did}" ${done?"checked":""}><span>${entry.text}</span></label>`;
         }).join("")}</div>`;
       headrow.appendChild(head);
       head.querySelectorAll(".duetag input[type=checkbox]").forEach(cb=>{
@@ -687,6 +717,17 @@
   }
 
   // ---- to-do tab ----
+  // Priority = how much of the course grade an item is worth, scaled up the
+  // closer its due date gets. Overdue undone items always sort to the very top.
+  function priorityScore(item){
+    const date = resolveDeadlineDate(item);
+    if(!date) return -1; // TBA (e.g. an unpublished final) sorts below everything dated
+    const today = new Date(); today.setHours(0,0,0,0);
+    const daysUntil = Math.round((date-today)/86400000);
+    if(daysUntil < 0) return 10000 + item.weight;
+    return item.weight / (daysUntil + 1);
+  }
+
   function todoRowHtml(item, small){
     const date = resolveDeadlineDate(item);
     const done = isDone(item.id);
@@ -694,23 +735,31 @@
     const overdue = date && date < today && !done;
     const dateStr = date ? date.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}) : "TBA";
     const color = "var(--"+(COURSE_COLOR[item.course]||"class")+")";
+    const weightStr = item.weight ? (Math.round(item.weight*10)/10)+"%" : "";
     return `<label class="todo-row${small?" small":""}${done?" done":""}${overdue?" overdue":""}">
       <input type="checkbox" data-id="${item.id}" ${done?"checked":""} style="accent-color:${color}">
       ${small?"":`<span class="todo-course" style="color:${color}">${COURSE_NAMES[item.course]||item.course}</span>`}
       <span class="todo-text">${item.text}</span>
+      ${weightStr && !small ? `<span class="todo-weight mono">${weightStr}</span>` : ""}
       <span class="todo-date mono">${dateStr}</span>
     </label>`;
   }
 
   function renderTodo(){
     const el = document.getElementById("todolist");
-    const rows = DEADLINES.map(item=>{
-      const date = resolveDeadlineDate(item);
-      return { item, sortKey: date ? date.getTime() : Infinity };
-    }).sort((a,b)=> a.sortKey-b.sortKey);
+    if(!DEADLINES.length){ el.innerHTML = `<div class="todo-empty">Nothing on the list.</div>`; return; }
 
-    if(!rows.length){ el.innerHTML = `<div class="todo-empty">Nothing on the list.</div>`; return; }
-    el.innerHTML = rows.map(r=> todoRowHtml(r.item,false)).join("");
+    const undone = DEADLINES.filter(i=>!isDone(i.id)).sort((a,b)=> priorityScore(b)-priorityScore(a));
+    const done = DEADLINES.filter(i=>isDone(i.id)).sort((a,b)=>{
+      const da = resolveDeadlineDate(a), db = resolveDeadlineDate(b);
+      return (da?da.getTime():Infinity) - (db?db.getTime():Infinity);
+    });
+
+    let html = undone.map(i=> todoRowHtml(i,false)).join("");
+    if(done.length){
+      html += `<div class="todo-divider">Done</div>` + done.map(i=> todoRowHtml(i,false)).join("");
+    }
+    el.innerHTML = html;
     el.querySelectorAll("input[type=checkbox]").forEach(cb=>{
       cb.addEventListener("change", ()=> toggleDone(cb.dataset.id));
     });
