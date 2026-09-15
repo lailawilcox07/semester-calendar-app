@@ -192,6 +192,45 @@
   .course-items{display:flex; flex-direction:column;}
 
   footer.note{margin-top:16px; font-size:12.5px; color:var(--muted); line-height:1.6; max-width:760px;}
+
+  /* ---- block detail modal ---- */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:50;
+    display:flex; align-items:flex-end; justify-content:center;
+  }
+  .modal-backdrop[hidden]{ display:none; }
+  @media (min-width:600px){ .modal-backdrop{ align-items:center; } }
+  .modal{
+    background:var(--surface); width:100%; max-width:480px; max-height:82vh;
+    border-radius:16px 16px 0 0; overflow:auto; box-shadow:0 -8px 30px rgba(0,0,0,.2);
+  }
+  @media (min-width:600px){ .modal{ border-radius:16px; max-height:80vh; } }
+  .modal-head{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
+    padding:16px 16px 12px; position:sticky; top:0; background:var(--surface); border-bottom:1px solid var(--line);
+  }
+  .modal-title{font-family:"Fraunces",serif; font-size:18px; font-weight:600;}
+  .modal-sub{font-size:12px; color:var(--muted); margin-top:3px;}
+  .modal-close{
+    flex:none; width:30px; height:30px; border-radius:50%; border:1px solid var(--line); background:var(--bg);
+    color:var(--ink); font-size:18px; line-height:1; cursor:pointer;
+  }
+  .modal-body{padding:14px 16px 20px;}
+  .modal-empty{color:var(--muted); font-size:13.5px; padding:10px 2px;}
+  .task-row{
+    display:flex; align-items:flex-start; gap:10px; padding:10px 4px; border-bottom:1px solid var(--line);
+  }
+  .task-row:last-child{border-bottom:none;}
+  .task-row input[type=checkbox]{width:18px; height:18px; margin-top:1px; flex:none; cursor:pointer;}
+  .task-row.done{opacity:.5;}
+  .task-row.done .task-text{text-decoration:line-through;}
+  .task-main{flex:1;}
+  .task-course{font-size:10.5px; font-weight:700; letter-spacing:.02em; display:block; margin-bottom:2px;}
+  .task-text{font-size:13.5px; line-height:1.4;}
+  .task-urgent{
+    display:inline-block; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em;
+    background:var(--flag); color:#fff; padding:2px 5px; border-radius:4px; margin-left:6px; vertical-align:1px;
+  }
 </style>
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
@@ -232,6 +271,19 @@
   <footer class="note">
     Commute assumption: 20 minutes each way between home and campus, built in once in the morning and once in the evening — gaps between classes are treated as on-campus study time rather than extra round trips. Soccer's own travel time isn't included since it wasn't specified; add a buffer on either side if you need to get there. Dates without a confirmed time yet (remaining MATH 225 quizzes, all final exams) are marked TBC/TBA — fill them in under <span class="mono">examDates</span> near the top of the script once SOLUS posts them. Checkmarks and the current view are saved on this device only.
   </footer>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop" hidden>
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="modalTitle"></div>
+        <div class="modal-sub mono" id="modalSub"></div>
+      </div>
+      <button type="button" class="modal-close" id="modalClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
 </div>
 
 <script>
@@ -375,10 +427,9 @@
       due:{}, overrides:[], crunch:false },
 
     { id:"w2", label:"Wk 2 · Sep 14", range:"Sep 14–20", dates:weekDates(2026,8,14),
-      note:"<b>MATH 225 Quiz 1</b> lands this week (Tue/Wed tutorial). Give MATH 225 review a bit more weight.",
+      note:"<b>MATH 225 Quiz 1</b> lands this week, in your Thursday tutorial (section 004). Give MATH 225 review a bit more weight.",
       due:{}, overrides:[
-        {day:"Tue", match:"MATH 225", flag:true, append:" — Quiz 1", weight:10},
-        {day:"Wed", match:"MATH 225", flag:true, append:" — Quiz 1", weight:10},
+        {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 1", weight:10},
       ], crunch:false },
 
     { id:"w3", label:"Wk 3 · Sep 21", range:"Sep 21–27", dates:weekDates(2026,8,21),
@@ -391,19 +442,25 @@
       overrides:[{day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 1B)", weight:4}], crunch:false },
 
     { id:"w4", label:"Wk 4 · Sep 28", range:"Sep 28–Oct 4", dates:weekDates(2026,8,28),
-      note:"<b>MATH 112 Quiz 1</b> in class Thursday — shift extra review into Tue/Thu MATH 112 blocks. BIOL's \"Stuff You Should Know\" also due Thu.",
-      due:{Thu:[
-        {text:"MATH 112 Quiz 1 (in class)", weight:15},
-        {text:"BIOL \"Stuff You Should Know\" due", weight:1},
-      ]},
+      note:"<b>MATH 112 Quiz 1</b> in class Thursday — shift extra review into Tue/Thu MATH 112 blocks. BIOL's \"Stuff You Should Know\" also due Thu. First PHYS problem set likely due around now too — confirm on onQ.",
+      due:{
+        Mon:[{text:"PHYS 242 Problem Set 1 due (confirm exact date on onQ)", weight:2}],
+        Thu:[
+          {text:"MATH 112 Quiz 1 (in class)", weight:15},
+          {text:"BIOL \"Stuff You Should Know\" due", weight:1},
+        ],
+      },
       overrides:[{day:"Thu", match:"MATH 112", flag:true, append:" — Quiz 1", weight:15}], crunch:false },
 
     { id:"w5", label:"Wk 5 · Oct 5", range:"Oct 5–11", dates:weekDates(2026,9,5),
       note:"<b>MATH 225 Quiz 2</b> (moved from the holiday) and <b>PHYS Quiz 1</b> both land this week, plus BIOL Lab 2B in-person.",
-      due:{Thu:[{text:"BIOL Lab 2B (in-person)", weight:4}]},
+      due:{
+        Thu:[{text:"BIOL Lab 2B (in-person)", weight:4}],
+        Sat:[{text:"BIOL DSMs 8–11 due", weight:1.52}],
+      },
       overrides:[
         {day:"Wed", match:"PHYS 242 — Tutorial", flag:true, append:" — Quiz 1", weight:4},
-        {day:"Tue", match:"MATH 225", flag:true, append:" — Quiz 2 (~this week)", weight:10},
+        {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 2 (~this week)", weight:10},
       ], crunch:false },
 
     { id:"rw", label:"Reading Week · Oct 12", range:"Oct 12–16", dates:weekDates(2026,9,12), noClasses:true,
@@ -559,6 +616,305 @@
   }
   const DEADLINES = buildDeadlines();
 
+  // ---- study-block task breakdown ----
+  // Real, specific prep tasks per deadline id, as given directly (not inferred from
+  // lecture content I don't have access to). Anything not listed here falls back to
+  // genericTasks() below. Add more entries here as you get the real breakdown for
+  // later weeks — nothing else about the scheduler needs to change.
+  const TASKS = {
+    "ov-w2|MATH225|quiz|MATH 225 — Tutorial — Quiz 1": [
+      { text:"Review classification of ODEs (order, linearity, homogeneous vs. non-homogeneous)", minutes:20 },
+      { text:"Practice separable first-order equations from Assignment 1 (and 2, if posted) — do them solo, not just read the solutions", minutes:40 },
+      { text:"Skim Week 1–2 course notes for anything not covered above", minutes:15 },
+    ],
+    "due-w3-Thu-0": [
+      { text:"Review Lab 1A pre-lab notes on scientific inquiry / the experimental method", minutes:15 },
+    ],
+    "due-w3-Fri-0": [
+      { text:"Watch/review lecture: An Introduction to Biology (hypothesis testing, experimental method)", minutes:30 },
+      { text:"Watch/review lecture: Biological Chemistry (atomic/molecular structure, water, carbon chemistry)", minutes:30 },
+      { text:"Review structure/function of the four macromolecule classes (lipids, carbs, nucleic acids, proteins) — densest part of the unit", minutes:30 },
+      { text:"Practice questions on MasteringBiology if available — focus on why/how, not just definitions", minutes:20 },
+    ],
+    "due-w3-Sat-0": [
+      { text:"MasteringBiology DSMs 1–3", minutes:30 },
+      { text:"MasteringBiology DSMs 4–5", minutes:30 },
+      { text:"MasteringBiology DSMs 6–7", minutes:30 },
+    ],
+    "due-w4-Mon-0": [
+      { text:"Attempt the assigned PHYS problems solo first", minutes:35 },
+      { text:"Work through sticking points with AI as a tutor — ask it to explain steps, don't ask for the answer", minutes:30 },
+      { text:"Save/submit the chat session per the course's format", minutes:5 },
+    ],
+    "due-w4-Thu-0": [
+      { text:"Redo Homework Sets 1 and 2 fully on your own — quiz is \"mainly from homework sets 1 and 2\" per the syllabus", minutes:60 },
+      { text:"Review Week 1–4 course notes", minutes:30 },
+    ],
+    "due-w4-Thu-1": [
+      { text:"Complete the Scavenger Hunt, Academics 101, and Biosafety Training activities — the Academic Integrity portion specifically reappears on the final", minutes:45 },
+    ],
+    "ov-w5|MATH225|quiz|MATH 225 — Tutorial — Quiz 2 (~this week)": [
+      { text:"Review exact equations and integrating factors (next technique after separable equations) — inferred sequencing, confirm against your actual notes", minutes:30 },
+      { text:"Redo the relevant assignment(s) posted since Quiz 1", minutes:40 },
+      { text:"Quick review of Quiz 1 topics, since the rolling-window rule means some overlap", minutes:15 },
+    ],
+    "ov-w5|PHYS242|quiz|PHYS 242 — Tutorial — Quiz 1": [
+      { text:"Review Einstein's Postulates, time dilation, length contraction, simultaneity (Week 3)", minutes:25 },
+      { text:"Review Lorentz Transformation properties, spacetime intervals, causality, Doppler shift (Week 4)", minutes:25 },
+      { text:"Practice 2–3 spacetime-diagram problems", minutes:30 },
+    ],
+    "due-w5-Thu-0": [
+      { text:"Review the Lab 2A online pre-lab activity on \"Conducting an Experiment\" before your session", minutes:15 },
+    ],
+    "due-w5-Sat-0": [
+      { text:"MasteringBiology DSMs 8–9", minutes:30 },
+      { text:"MasteringBiology DSMs 10–11", minutes:30 },
+    ],
+    "ov-w6|MATH112|quiz|MATH 112 — Quiz 2": [
+      { text:"Review Week 5–6 course notes (newest material since Quiz 1)", minutes:30 },
+      { text:"Redo Homework Sets 3–4", minutes:50 },
+      { text:"Quick cumulative review of Weeks 1–4 — quiz isn't cumulative per the syllabus, but the underlying skills build on each other", minutes:20 },
+    ],
+    "ov-w6|COGS100|quiz|COGS 100 — Quiz 1": [
+      { text:"Review Unit 1: Cognitive Science as a multidisciplinary field, cognitive theory, the Turing Machine / mind-as-computation", minutes:20 },
+      { text:"Review Unit 2: perspectives on mind from philosophy, psychology, neuroscience, linguistics, anthropology, and AI", minutes:30 },
+      { text:"Review Unit 3 (started): mental representations — logic/rule-based systems, concepts, analogy", minutes:30 },
+    ],
+    "due-w6-Fri-0": [
+      { text:"Review cell structure/organization: prokaryotic vs. eukaryotic cells, organelle structure/function", minutes:30 },
+      { text:"Review membrane structure/function: transport mechanisms, tonicity, diffusion, osmosis, active vs. passive transport, endo/exocytosis", minutes:30 },
+      { text:"Review enzymology and metabolism: cellular respiration (glycolysis, citric acid cycle, electron transport), fermentation", minutes:30 },
+      { text:"Practice questions on MasteringBiology", minutes:20 },
+    ],
+    "ov-w6|BIOL102|lab|BIOL 102 — Lab (Lab 2C)": [
+      { text:"Review your Lab 2B results/notes before this session", minutes:10 },
+    ],
+    "ov-w7|PHYS242|exam|PHYS 242 — MIDTERM": [
+      { text:"Full relativity review: reference frames, Galilean relativity, spacetime diagrams (Wk1)", minutes:25 },
+      { text:"Classical waves, speed of light (Wk2)", minutes:15 },
+      { text:"Einstein's postulates, time dilation, length contraction, simultaneity (Wk3)", minutes:25 },
+      { text:"Lorentz transformation, spacetime intervals, causality, Doppler shift (Wk4)", minutes:25 },
+      { text:"Relativistic momentum, energy, dynamics (Wk5)", minutes:25 },
+      { text:"Waves, EM waves, wave nature of light (Wk6)", minutes:20 },
+      { text:"Redo 2–3 problems from each weekly problem set so far under timed conditions", minutes:60 },
+      { text:"Formula sheet drill — one is provided on the exam, know where everything is on it", minutes:20 },
+    ],
+    "due-w7-Thu-0": [
+      { text:"Complete the pre-lab activity/quiz for \"Working with Data\"", minutes:40 },
+    ],
+    "due-w7-Sat-0": [
+      { text:"Work through DSMs 12, 13, 21", minutes:40 },
+    ],
+    "due-w8-Sat-0": [
+      { text:"Section 1 review: intro to biology + biological chemistry (atoms, water, carbon, macromolecules)", minutes:30 },
+      { text:"Section 2 review: cell structure/organization", minutes:25 },
+      { text:"Membranes and transport", minutes:25 },
+      { text:"Enzymology, metabolism, cellular respiration", minutes:30 },
+      { text:"Photosynthesis: chloroplast structure, light reactions, Calvin cycle, C3/C4/CAM variations", minutes:30 },
+      { text:"Cell communication: receptors, signal transduction, hormone signalling, apoptosis", minutes:25 },
+      { text:"Practice applied (not just recall) questions — this exam emphasizes application over memorization per the syllabus", minutes:40 },
+    ],
+    "ov-w8|BIOL102|lab|BIOL 102 — Lab (Lab 3B)": [
+      { text:"Review your Lab 3A pre-lab notes before this session", minutes:15 },
+    ],
+    "due-w8-Fri-0": [
+      { text:"Review the mental-representations material from Weeks 5–7 (logic/rule systems, concepts, analogy, image/network) that the assignment builds on", minutes:25 },
+      { text:"Complete the assignment during/after the tutorial session", minutes:75 },
+    ],
+    "ov-w9|PHYS242|quiz|PHYS 242 — Tutorial — Quiz 2": [
+      { text:"Relativistic momentum, energy, dynamics (Wk5)", minutes:20 },
+      { text:"Waves, EM waves (Wk6)", minutes:15 },
+      { text:"Blackbody radiation, Planck's Law (Wk7)", minutes:25 },
+      { text:"Particle nature of light, Compton scattering (Wk8)", minutes:25 },
+    ],
+    "due-w9-Fri-0": [
+      { text:"Review DNA structure: nucleotides, the double helix, replication, telomeres", minutes:30 },
+      { text:"Review gene expression at the molecular level: central dogma, transcription, RNA types, the genetic code, translation", minutes:35 },
+      { text:"Practice questions on MasteringBiology", minutes:20 },
+    ],
+    "due-w9-Sat-0": [
+      { text:"Work through DSMs 16–17", minutes:25 },
+    ],
+    "due-w10-Thu-0": [
+      { text:"Complete the pre-lab activity/quiz for \"Biotech Applications\"", minutes:40 },
+    ],
+    "ov-w11|PHYS242|quiz|PHYS 242 — Tutorial — Quiz 3": [
+      { text:"Particle nature of matter, atomic spectra, Bohr model (Wk9)", minutes:25 },
+      { text:"Matter waves, wave-particle duality, Heisenberg Uncertainty (Wk10)", minutes:25 },
+      { text:"Quantum mechanics postulates (Wk11)", minutes:25 },
+    ],
+    "ov-w11|MATH112|quiz|MATH 112 — Quiz 3": [
+      { text:"Get a head start during Week 10 if you can: skim Homework Sets 5–6", minutes:30 },
+      { text:"Redo Homework Sets 5 and 6 fully — \"mainly from homework sets 5 and 6\" per the syllabus", minutes:60 },
+      { text:"Review Week 9–11 course notes", minutes:30 },
+    ],
+    "ov-w11|COGS100|quiz|COGS 100 — Quiz 2": [
+      { text:"Get a head start during Week 10 if you can: skim Weeks 8–10 topics", minutes:30 },
+      { text:"Mental models and mental processes, logic / Wason Card example (Wk8)", minutes:20 },
+      { text:"Memory and vision (Wk9)", minutes:20 },
+      { text:"Problem solving, decision making, social behaviour (Wk10)", minutes:20 },
+      { text:"Cognitive modeling: simulating mental processes, logic programming, neural networks (Wk11)", minutes:20 },
+    ],
+    "ov-w11|BIOL102|lab|BIOL 102 — Lab (Lab 4B)": [
+      { text:"Review your Lab 4A pre-lab notes before this session", minutes:15 },
+    ],
+    "due-w11-Sat-0": [
+      { text:"Work through DSMs 18, 20", minutes:25 },
+    ],
+    "due-w12-Fri-0": [
+      { text:"Gene regulation: transcription factors, operons, eukaryotic transcription, epigenetics", minutes:30 },
+      { text:"Mutation and cell cycle regulation: DNA repair, checkpoints, cancer, oncogenes", minutes:25 },
+      { text:"Chromosomes, cell division, meiosis", minutes:25 },
+      { text:"Inheritance: Mendel's laws, gene linkage, epigenetic effects", minutes:25 },
+      { text:"Developmental genetics + genetic technology (cloning, PCR, DNA fingerprinting, gene therapy)", minutes:25 },
+      { text:"Practice questions on MasteringBiology", minutes:20 },
+    ],
+    "due-w12-Sat-0": [
+      { text:"Work through the last three DSMs (19, 14, 15)", minutes:20 },
+    ],
+    "final-MATH112": [
+      { text:"Comprehensive review of all course notes and Homework Sets 1–6 — this is your highest-risk exam: 55% weight plus a 38% pass floor regardless of quiz grades", minutes:90 },
+      { text:"Extra focus on Weeks 7–12 material, per the syllabus's own emphasis", minutes:60 },
+    ],
+    "final-MATH225": [
+      { text:"Review classification of ODE types", minutes:20 },
+      { text:"Review solution techniques: scalar first-order, linear higher-order, linear vector systems", minutes:60 },
+      { text:"Review Laplace transforms", minutes:40 },
+      { text:"Review modelling / interpretation — likely the most exam-worthy since it's the applied capstone skill", minutes:40 },
+    ],
+    "final-COGS100": [
+      { text:"Comprehensive review across all 12 weeks / 5 units", minutes:90 },
+      { text:"Extra weight on Unit 5 (cognitive architecture, AGI) as the most recent material", minutes:40 },
+    ],
+    "final-PHYS242": [
+      { text:"Comprehensive review of relativity (Weeks 1–6)", minutes:60 },
+      { text:"Comprehensive review of quantum theory (Weeks 7–12) — the midterm already tested relativity once, don't under-review it just because it's \"done\"", minutes:60 },
+    ],
+    "final-BIOL102": [
+      { text:"Review all of Dr. Regan's material — Weeks 7–12, genetics", minutes:90 },
+      { text:"Review lab-related questions — Dr. Yates's material was fully covered by the midterm and isn't retested", minutes:30 },
+    ],
+  };
+  function genericTasks(item){
+    switch(item.kind){
+      case "quiz":
+        return [
+          { text:"Review lecture notes / slides for this unit", minutes:30 },
+          { text:"Do practice problems or old quiz questions", minutes:30 },
+          { text:"Quick flashcards / active recall review", minutes:15 },
+        ];
+      case "lab":
+        return [
+          { text:"Review pre-lab notes and confirm what's required", minutes:15 },
+        ];
+      case "exam":
+        return [
+          { text:"Review all lecture notes covered so far", minutes:45 },
+          { text:"Redo old quizzes and practice problems", minutes:45 },
+          { text:"Make a summary sheet of key concepts / formulas", minutes:30 },
+        ];
+      case "final":
+        return [
+          { text:"Full review pass of all lecture notes", minutes:60 },
+          { text:"Redo every quiz and problem set from the term", minutes:60 },
+          { text:"Work through a practice / past exam if available", minutes:45 },
+        ];
+      default:
+        return [{ text:"Work on: "+item.text, minutes:30 }];
+    }
+  }
+  function getTasks(item){ return TASKS[item.id] || genericTasks(item); }
+
+  // ---- auto-scheduler: fills upcoming study blocks with the highest-priority
+  // pending tasks that fit, recomputed fresh every render so anything left
+  // unchecked when a block ends automatically flows into the next open block.
+  function getUpcomingStudyBlocks(horizonDays){
+    const now = new Date();
+    const blocks = [];
+    for(let d=0; d<=horizonDays; d++){
+      const date = new Date(now); date.setDate(now.getDate()+d); date.setHours(0,0,0,0);
+      const week = resolveWeekForDate(date) || weeks.find(w=>w.id==="std");
+      const dayIdx = (date.getDay()+6)%7;
+      const dayName = DAYS[dayIdx];
+      buildDayBlocks(week, dayName).filter(b=>b[3]==="study").forEach(b=>{
+        const [start,end] = b;
+        const [sh,sm] = start.split(":").map(Number);
+        const [eh,em] = end.split(":").map(Number);
+        const blockStart = new Date(date); blockStart.setHours(sh,sm,0,0);
+        const blockEnd = new Date(date); blockEnd.setHours(eh,em,0,0);
+        if(blockEnd <= now) return;
+        const capacityStart = blockStart < now ? now : blockStart;
+        const capacityMin = Math.round((blockEnd-capacityStart)/60000);
+        if(capacityMin <= 0) return;
+        blocks.push({ date, start, end, capacityMin, blockKey: date.toDateString()+"|"+start });
+      });
+    }
+    return blocks;
+  }
+  // How many days before its due date a task is allowed to be scheduled at all,
+  // so blocks near "now" don't get crammed with prep for things weeks away —
+  // there's simply far more study-block capacity than task content, so a naive
+  // fill-blocks-in-order pass front-loads the entire term into the first few days.
+  function leadDays(item){
+    if(item.kind==="final") return 35;
+    if(item.kind==="exam") return 21;
+    return 10;
+  }
+  // Cap how much gets scheduled into any single sitting. Without this, a long block
+  // (e.g. a 3+ hour Saturday block) would swallow several deadlines' worth of prep
+  // in one sitting, which — combined with there being far more block capacity than
+  // task content overall — front-loads the whole term into the first few days.
+  // Anything past this cap is left as flexible time, not force-filled.
+  const SESSION_CAP_MIN = 90;
+  function scheduleTasks(){
+    const consumed = new Set(); // taskIds placed already, this computation
+    const assignment = {};
+    const blocks = getUpcomingStudyBlocks(110);
+    const undone = DEADLINES.filter(i=>!isDone(i.id));
+    const byPriority = [...undone].sort((a,b)=> priorityScore(b)-priorityScore(a));
+
+    function fillFrom(list, block, remaining, picked, windowOnly){
+      for(const item of list){
+        if(remaining.v<=0) break;
+        if(windowOnly){
+          const date = resolveDeadlineDate(item);
+          if(date){
+            const daysAhead = Math.round((date-block.date)/86400000);
+            if(daysAhead > leadDays(item)) continue; // not eligible yet at this block's date
+          }
+        }
+        const tasks = getTasks(item);
+        for(let idx=0; idx<tasks.length; idx++){
+          if(remaining.v<=0) break;
+          const taskId = item.id+"::t"+idx;
+          if(isDone(taskId) || consumed.has(taskId)) continue;
+          if(tasks[idx].minutes<=remaining.v){
+            picked.push({ taskId, text:tasks[idx].text, minutes:tasks[idx].minutes, item });
+            consumed.add(taskId);
+            remaining.v -= tasks[idx].minutes;
+          }
+        }
+      }
+    }
+
+    for(const block of blocks){
+      const remaining = { v: Math.min(block.capacityMin, SESSION_CAP_MIN) };
+      const picked = [];
+      fillFrom(byPriority, block, remaining, picked, true);  // only what's actually due-soon-enough to matter here
+      if(picked.length) assignment[block.blockKey] = picked;
+    }
+    return assignment;
+  }
+  function toggleTask(item, idx){
+    const taskId = item.id+"::t"+idx;
+    setDone(taskId, !isDone(taskId));
+    const tasks = getTasks(item);
+    const allDone = tasks.every((t,i)=> isDone(item.id+"::t"+i));
+    setDone(item.id, allDone);
+    refreshAll();
+    renderBlockModal();
+  }
+
   // ---- done-state store (localStorage) ----
   const DONE_KEY = "semcal-done-v1";
   function loadDone(){ try{ return JSON.parse(localStorage.getItem(DONE_KEY)||"{}"); }catch(e){ return {}; } }
@@ -704,6 +1060,11 @@
             e.stopPropagation();
             toggleDone(blockId);
           });
+        }
+        if(cat==="study"){
+          div.style.cursor = "pointer";
+          const blockDate = week.dates ? week.dates[i] : null;
+          div.addEventListener("click", ()=> openBlockModal(blockDate, start, end, label));
         }
         col.appendChild(div);
       });
@@ -859,6 +1220,69 @@
     renderProgress();
     renderNowStrip();
   }
+
+  // ---- block detail modal ----
+  let openBlock = null; // { date, start, end, label } | null
+
+  function openBlockModal(date, start, end, label){
+    openBlock = { date, start, end, label };
+    document.getElementById("modalBackdrop").hidden = false;
+    renderBlockModal();
+  }
+  function closeBlockModal(){
+    openBlock = null;
+    document.getElementById("modalBackdrop").hidden = true;
+  }
+  function renderBlockModal(){
+    if(!openBlock) return;
+    const { date, start, end, label } = openBlock;
+    document.getElementById("modalTitle").textContent = label;
+    document.getElementById("modalSub").textContent =
+      (date ? date.toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"})+" · " : "") + fmt(start)+"–"+fmt(end);
+
+    const body = document.getElementById("modalBody");
+    if(!date){
+      body.innerHTML = `<div class="modal-empty">This is the standard-week template, not a specific date — pick a real week above to see what's planned for this block.</div>`;
+      return;
+    }
+    const blockKey = date.toDateString()+"|"+start;
+    const tasks = scheduleTasks()[blockKey];
+    if(!tasks || !tasks.length){
+      body.innerHTML = `<div class="modal-empty">Nothing due soon enough to need this block yet — it's flexible time (or, if this is in the past, it's already gone by). Check back closer to your next deadline.</div>`;
+      return;
+    }
+    const today = new Date(); today.setHours(0,0,0,0);
+    body.innerHTML = tasks.map(t=>{
+      const itemDate = resolveDeadlineDate(t.item);
+      const daysUntil = itemDate ? Math.round((itemDate-today)/86400000) : null;
+      const urgent = daysUntil!==null && daysUntil<=1;
+      const done = isDone(t.taskId);
+      const color = "var(--"+(COURSE_COLOR[t.item.course]||"class")+")";
+      return `<label class="task-row${done?" done":""}">
+        <input type="checkbox" data-taskid="${t.taskId}" ${done?"checked":""} style="accent-color:${color}">
+        <span class="task-main">
+          <span class="task-course" style="color:${color}">${COURSE_NAMES[t.item.course]||t.item.course} · ${t.item.text}${urgent?'<span class="task-urgent">priority</span>':""}</span>
+          <span class="task-text">${t.text}</span>
+        </span>
+      </label>`;
+    }).join("");
+    const usedMin = tasks.reduce((sum,t)=> sum+t.minutes, 0);
+    const blockMin = toMin(end)-toMin(start);
+    if(blockMin-usedMin >= 20){
+      body.innerHTML += `<div class="modal-empty">That's ~${usedMin} min scheduled — the rest of this block (${blockMin-usedMin} min) is flexible: buffer, review, or anything else not tracked here.</div>`;
+    }
+    body.querySelectorAll("input[type=checkbox]").forEach(cb=>{
+      cb.addEventListener("change", ()=>{
+        const [itemId, tIdx] = cb.dataset.taskid.split("::t");
+        const item = DEADLINES.find(d=>d.id===itemId);
+        if(item) toggleTask(item, Number(tIdx));
+      });
+    });
+  }
+  document.getElementById("modalClose").addEventListener("click", closeBlockModal);
+  document.getElementById("modalBackdrop").addEventListener("click", e=>{
+    if(e.target.id==="modalBackdrop") closeBlockModal();
+  });
 
   // ---- tabs ----
   document.getElementById("tabbar").addEventListener("click", e=>{
