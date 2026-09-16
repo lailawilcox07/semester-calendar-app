@@ -458,13 +458,15 @@
       due:{}, overrides:[], crunch:false },
 
     { id:"w2", label:"Wk 2 · Sep 14", range:"Sep 14–20", dates:weekDates(2026,8,14),
-      note:"<b>MATH 225 Quiz 1</b> lands this week, in your Thursday tutorial (section 004). BIOL Pre-Lab Quiz #1 is due the same day — check it isn't still unstarted. MATH 225 Assignment 1 (ungraded practice) due Fri.",
+      note:"<b>MATH 225 Quiz 1</b> lands this week, in your Thursday tutorial (section 004). BIOL Pre-Lab Quiz #1 is due the same day — check it isn't still unstarted. MATH 225 Assignment 1 (ungraded practice) due Fri. No MATH 112 lecture Thu or Fri this week — that time's freed up for study.",
       due:{
         Thu:[{text:"BIOL Pre-Lab Quiz #1 due (Lab 1A)", weight:2}],
         Fri:[{text:"MATH 225 Assignment 1 due (ungraded practice)", weight:5, graded:false}],
       },
       overrides:[
         {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 1", weight:10},
+        {day:"Thu", match:"MATH 112", cancel:true},
+        {day:"Fri", match:"MATH 112", cancel:true},
       ], crunch:false },
 
     { id:"w3", label:"Wk 3 · Sep 21", range:"Sep 21–27", dates:weekDates(2026,8,21),
@@ -1202,6 +1204,7 @@
           if(ov.exam){ b[2]=ov.newLabel; b[3]="exam"; }
           if(ov.append) b[2]=b[2]+ov.append;
           if(ov.flag) b[4]="flag";
+          if(ov.cancel){ b[2]=b[2]+" — No class this week"; b[3]="study"; }
         }
       });
     });
