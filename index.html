@@ -399,7 +399,9 @@
 
   const noClassDay = [
     ["07:30","08:00","Wake / Breakfast","personal"],
-    ["08:00","17:30","Open study block (no classes)","study"],
+    ["08:00","12:15","Open study block (no classes)","study"],
+    ["12:15","13:00","Lunch","personal"],
+    ["13:00","17:30","Open study block (no classes)","study"],
     ["17:30","18:15","Dinner","personal"],
     ["18:15","21:30","Study block","study"],
     ["21:30","22:30","Wind-down","sleep"],
@@ -1060,7 +1062,7 @@
   legendEl.appendChild(flagLegend);
 
   const weekbarEl = document.getElementById("weekbar");
-  weeks.forEach(w=>{
+  weeks.filter(w=>w.id!=="std").forEach(w=>{
     const b=document.createElement("button");
     b.textContent=w.label; b.dataset.id=w.id;
     b.addEventListener("click",()=>render(w.id));
@@ -1423,7 +1425,8 @@
     if(tab==="prog") renderProgress();
   });
 
-  render("std");
+  const initialWeek = resolveWeekForDate(new Date());
+  render(initialWeek ? initialWeek.id : "w2");
   renderTodo();
   renderProgress();
   renderNowStrip();
