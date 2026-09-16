@@ -27,6 +27,10 @@
     --sleep-tint:#EBE5EC;
     --personal:#6E7F52;
     --personal-tint:#E9EDE2;
+    --therapy:#3D6E96;
+    --therapy-tint:#E1EAF1;
+    --downtime:#A85B6E;
+    --downtime-tint:#F2E3E6;
     --flag:#B23A48;
   }
   @media (prefers-color-scheme: dark){
@@ -38,6 +42,8 @@
       --sport:#E08064; --sport-tint:#3A2621;
       --sleep:#C7A9CC; --sleep-tint:#332B37;
       --personal:#B7CB93; --personal-tint:#2B3122;
+      --therapy:#8FB8D9; --therapy-tint:#22323F;
+      --downtime:#D99BAC; --downtime-tint:#3A262B;
       --flag:#F0798A;
     }
   }
@@ -49,6 +55,8 @@
     --sport:#E08064; --sport-tint:#3A2621;
     --sleep:#C7A9CC; --sleep-tint:#332B37;
     --personal:#B7CB93; --personal-tint:#2B3122;
+    --therapy:#8FB8D9; --therapy-tint:#22323F;
+    --downtime:#D99BAC; --downtime-tint:#3A262B;
     --flag:#F0798A;
   }
 
@@ -155,6 +163,8 @@
   .block.sport{background:var(--sport-tint); color:var(--sport); border-color:var(--sport);}
   .block.sleep{background:var(--sleep-tint); color:var(--sleep); border-color:var(--sleep);}
   .block.personal{background:var(--personal-tint); color:var(--personal); border-color:var(--personal);}
+  .block.therapy{background:var(--therapy-tint); color:var(--therapy); border-color:var(--therapy);}
+  .block.downtime{background:var(--downtime-tint); color:var(--downtime); border-color:var(--downtime);}
   .block.exam{background:var(--flag); color:#fff; border-color:var(--flag);}
   .block.flagged{border:2px dashed var(--flag) !important;}
   .block.flagged .l::before{content:"⚑ ";}
@@ -334,7 +344,7 @@
       ["07:30","08:00","Wake / Breakfast","personal"],
       ["08:00","08:25","Study block","study"],
       ["08:25","09:00","Travel to therapy","commute"],
-      ["09:00","10:00","Therapy","personal"],
+      ["09:00","10:00","Therapy","therapy"],
       ["10:00","10:35","Travel home","commute"],
       ["10:35","12:10","Study block","study"],
       ["12:10","12:30","Walk to campus","commute"],
@@ -376,7 +386,7 @@
       ["15:50","16:30","Decompress","personal"],
       ["16:30","18:00","Light review","study"],
       ["18:00","18:45","Dinner","personal"],
-      ["18:45","21:30","Protected downtime","personal"],
+      ["18:45","21:30","Protected downtime","downtime"],
       ["21:30","22:30","Wind-down","sleep"],
     ],
     Sat: [
@@ -387,7 +397,7 @@
       ["15:00","16:00","Break / errands","personal"],
       ["16:00","18:00","Light review","study"],
       ["18:00","18:45","Dinner","personal"],
-      ["18:45","21:30","Protected downtime","personal"],
+      ["18:45","21:30","Protected downtime","downtime"],
       ["21:30","22:30","Wind-down","sleep"],
     ],
     Sun: [
@@ -400,7 +410,7 @@
       ["16:00","17:00","Break","personal"],
       ["17:00","18:30","Weekly planning","study"],
       ["18:30","19:15","Dinner","personal"],
-      ["19:15","21:30","Protected downtime","personal"],
+      ["19:15","21:30","Protected downtime","downtime"],
       ["21:30","22:30","Wind-down","sleep"],
     ],
   };
@@ -1123,7 +1133,9 @@
     ["commute","Walk to/from campus"],
     ["sport","Soccer"],
     ["sleep","Sleep &amp; wind-down"],
-    ["personal","Meals &amp; downtime"],
+    ["personal","Meals"],
+    ["therapy","Therapy"],
+    ["downtime","Protected downtime"],
   ];
   const legendEl = document.getElementById("legend");
   legendItems.forEach(([cat,label])=>{
