@@ -1023,6 +1023,24 @@
   }
   function toggleDone(id){ setDone(id, !isDone(id)); refreshAll(); }
 
+  // Calendar blocks: past ones are checked by default (the time already happened),
+  // but that's just a default — an explicit check or uncheck always wins over it.
+  function isBlockDone(blockId, autoByTime){
+    if(doneState[blockId]) return true;
+    if(doneState[blockId+":off"]) return false;
+    return autoByTime;
+  }
+  function toggleBlockDone(blockId, autoByTime){
+    if(isBlockDone(blockId, autoByTime)){
+      setDone(blockId, false);
+      setDone(blockId+":off", autoByTime);
+    } else {
+      setDone(blockId, true);
+      setDone(blockId+":off", false);
+    }
+    refreshAll();
+  }
+
   const legendItems = [
     ["class","Class / lecture / lab"],
     ["study","Study block"],
@@ -1140,24 +1158,28 @@
       col.className = "daycol timeline-bg";
       col.style.height = (TOTAL_MIN*PPM)+"px";
 
+      const now = new Date();
       buildDayBlocks(week, day).forEach(b=>{
         const [start,end,label,cat,flagMark] = b;
         const top = (toMin(start)-START_MIN)*PPM;
         const height = (toMin(end)-toMin(start))*PPM;
         const div = document.createElement("div");
-        const blockId = cat==="study" ? ("blk-"+week.id+"-"+day+"-"+start) : null;
-        const done = blockId ? isDone(blockId) : false;
+        const blockId = "blk-"+week.id+"-"+day+"-"+start;
+        let autoByTime = false;
+        if(week.dates){
+          const [eh,em] = end.split(":").map(Number);
+          const blockEnd = new Date(week.dates[i]); blockEnd.setHours(eh,em,0,0);
+          autoByTime = blockEnd <= now;
+        }
+        const done = isBlockDone(blockId, autoByTime);
         div.className = "block " + cat + (flagMark ? " flagged" : "") + (done ? " done" : "");
         div.style.top = top+"px";
         div.style.height = Math.max(height,16)+"px";
-        const checkHtml = blockId ? `<input type="checkbox" class="block-check" ${done?"checked":""} aria-label="Mark done">` : "";
-        div.innerHTML = `<span class="t">${checkHtml}${fmt(start)}–${fmt(end)}</span><span class="l">${label}</span>`;
-        if(blockId){
-          div.querySelector(".block-check").addEventListener("click", e=>{
-            e.stopPropagation();
-            toggleDone(blockId);
-          });
-        }
+        div.innerHTML = `<span class="t"><input type="checkbox" class="block-check" ${done?"checked":""} aria-label="Mark done">${fmt(start)}–${fmt(end)}</span><span class="l">${label}</span>`;
+        div.querySelector(".block-check").addEventListener("click", e=>{
+          e.stopPropagation();
+          toggleBlockDone(blockId, autoByTime);
+        });
         if(cat==="study"){
           div.style.cursor = "pointer";
           const blockDate = week.dates ? week.dates[i] : null;
