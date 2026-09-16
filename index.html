@@ -175,6 +175,10 @@
   .todo-text{flex:1;}
   .todo-date{font-size:11.5px; color:var(--muted); flex:none; white-space:nowrap;}
   .todo-weight{font-size:11px; color:var(--muted); flex:none; white-space:nowrap; opacity:.85;}
+  .todo-weight.ungraded{font-style:italic;}
+  .todo-row.ungraded{opacity:.75;}
+  .todo-row.ungraded .todo-course{opacity:.7;}
+  .course-subhead{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; margin:12px 0 6px;}
   .todo-row.done{opacity:.5;}
   .todo-row.done .todo-text{text-decoration:line-through;}
   .todo-row.overdue .todo-date{color:var(--flag); font-weight:600;}
@@ -420,34 +424,44 @@
       due:{}, overrides:[], crunch:false },
 
     { id:"w2", label:"Wk 2 · Sep 14", range:"Sep 14–20", dates:weekDates(2026,8,14),
-      note:"<b>MATH 225 Quiz 1</b> lands this week, in your Thursday tutorial (section 004). Give MATH 225 review a bit more weight.",
-      due:{}, overrides:[
+      note:"<b>MATH 225 Quiz 1</b> lands this week, in your Thursday tutorial (section 004). BIOL Pre-Lab Quiz #1 is due the same day — check it isn't still unstarted. MATH 225 Assignment 1 (ungraded practice) due Fri.",
+      due:{
+        Thu:[{text:"BIOL Pre-Lab Quiz #1 due (Lab 1A)", weight:2}],
+        Fri:[{text:"MATH 225 Assignment 1 due (ungraded practice)", weight:5, graded:false}],
+      },
+      overrides:[
         {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 1", weight:10},
       ], crunch:false },
 
     { id:"w3", label:"Wk 3 · Sep 21", range:"Sep 21–27", dates:weekDates(2026,8,21),
-      note:"BIOL-heavy: <b>Lab 1B</b> in-person, <b>Lecture Quiz 1</b> due Fri, and the first <b>DSM batch (1–7)</b> due Sat.",
+      note:"BIOL-heavy: <b>Lab 1B</b> in-person, <b>Lecture Quiz 1</b> due Fri, and the first <b>DSM batch (1–7)</b> due Sat. MATH 225 Assignment 2 (ungraded practice) also due Fri.",
       due:{
         Mon:[{text:"PHYS 242 Problem Set 1 due", weight:2}],
         Thu:[{text:"BIOL Lab 1B (in-person)", weight:4}],
-        Fri:[{text:"BIOL Lecture Quiz 1 due", weight:5}],
+        Fri:[
+          {text:"BIOL Lecture Quiz 1 due", weight:5},
+          {text:"MATH 225 Assignment 2 due (ungraded practice)", weight:5, graded:false},
+        ],
         Sat:[{text:"BIOL DSMs 1–7 due", weight:2.67}],
       },
       overrides:[{day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 1B)", weight:4}], crunch:false },
 
     { id:"w4", label:"Wk 4 · Sep 28", range:"Sep 28–Oct 4", dates:weekDates(2026,8,28),
-      note:"<b>MATH 112 Quiz 1</b> in class Thursday — shift extra review into Tue/Thu MATH 112 blocks. BIOL's \"Stuff You Should Know\" also due Thu. First PHYS problem set likely due around now too — confirm on onQ.",
+      note:"<b>MATH 112 Quiz 1</b> in class Thursday — shift extra review into Tue/Thu MATH 112 blocks. BIOL Pre-Lab Quiz #2 and the whole \"Stuff You Should Know\" bundle (Scavenger Hunt, Academics 101, Biosafety) are also due Thu — Biosafety needs ≥50% to unlock Labs 2B/2C.",
       due:{
         Mon:[{text:"PHYS 242 Problem Set 2 due", weight:2}],
         Thu:[
           {text:"MATH 112 Quiz 1 (in class)", weight:15},
-          {text:"BIOL \"Stuff You Should Know\" due", weight:1},
+          {text:"BIOL Pre-Lab Quiz #2 due (Lab 2A)", weight:2},
+          {text:"BIOL Scavenger Hunt due", weight:2},
+          {text:"BIOL Academics 101 due", weight:1},
+          {text:"BIOL Biosafety Quiz due (need ≥50% to unlock Labs 2B/2C)", weight:1},
         ],
       },
       overrides:[{day:"Thu", match:"MATH 112", flag:true, append:" — Quiz 1", weight:15}], crunch:false },
 
     { id:"w5", label:"Wk 5 · Oct 5", range:"Oct 5–11", dates:weekDates(2026,9,5),
-      note:"<b>MATH 225 Quiz 2</b> (moved from the holiday) and <b>PHYS Quiz 1</b> both land this week, plus BIOL Lab 2B in-person.",
+      note:"<b>MATH 225 Quiz 2</b> (Oct 8) and <b>PHYS Quiz 1</b> (Oct 7) both land this week, plus BIOL Lab 2B in-person.",
       due:{
         Mon:[{text:"PHYS 242 Problem Set 3 due", weight:2}],
         Thu:[{text:"BIOL Lab 2B (in-person)", weight:4}],
@@ -455,7 +469,7 @@
       },
       overrides:[
         {day:"Wed", match:"PHYS 242 — Tutorial", flag:true, append:" — Quiz 1", weight:4},
-        {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 2 (~this week)", weight:10},
+        {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 2", weight:10},
       ], crunch:false },
 
     { id:"rw", label:"Reading Week · Oct 12", range:"Oct 12–16", dates:weekDates(2026,9,12), noClasses:true,
@@ -463,7 +477,7 @@
       due:{}, overrides:[], crunch:false },
 
     { id:"w6", label:"Wk 6 · Oct 19 ⚑", range:"Oct 19–25", dates:weekDates(2026,9,19),
-      note:"<b>Heaviest week so far.</b> MATH 112 Quiz 2 and COGS 100 Quiz 1 both on Thu Oct 22, BIOL Lecture Quiz 2 due Fri, BIOL Lab 2C in-person. Front-load MATH 112 / COGS 100 review into the weekend before.",
+      note:"<b>Worst single day of the term: three quizzes land Thu Oct 22</b> — MATH 225 Quiz 3, MATH 112 Quiz 2, and COGS 100 Quiz 1, all the same day. Plus BIOL Lecture Quiz 2 due Fri and BIOL Lab 2C in-person. Build slack into the weekend before, not the days of.",
       due:{
         Mon:[{text:"PHYS 242 Problem Set 4 due", weight:2}],
         Fri:[{text:"BIOL Lecture Quiz 2 due", weight:5}],
@@ -471,6 +485,7 @@
       overrides:[
         {day:"Thu", match:"COGS 100", flag:true, append:" — Quiz 1", weight:20},
         {day:"Thu", match:"MATH 112", flag:true, append:" — Quiz 2", weight:15},
+        {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 3", weight:10},
         {day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 2C)", weight:4},
       ], crunch:true },
 
@@ -478,7 +493,7 @@
       note:"<b>PHYS 242 Midterm</b>, Wed Oct 28 — two 45-min parts, one in the lecture slot and one in the tutorial slot. Give Wednesday's long morning and the weekend before entirely to PHYS. BIOL DSMs due Sat.",
       due:{
         Sat:[{text:"BIOL DSMs 12,13,21 due", weight:1.14}],
-        Thu:[{text:"BIOL Lab 3A quiz due", weight:2}],
+        Thu:[{text:"BIOL Pre-Lab Quiz #3 due (Lab 3A)", weight:2}],
       },
       overrides:[
         {day:"Wed", match:"PHYS 242 — Lecture", exam:true, newLabel:"PHYS 242 — MIDTERM (Part 1)", weight:20},
@@ -486,13 +501,16 @@
       ], crunch:true },
 
     { id:"w8", label:"Wk 8 · Nov 2 ⚑", range:"Nov 2–8", dates:weekDates(2026,10,2),
-      note:"<b>BIOL 102 Midterm — Saturday Nov 7, 11am–1pm.</b> This replaces the normal Saturday deep-work block; treat Saturday afternoon as recovery, not study time. COGS 100 Assignment 1 also due Nov 6–8.",
+      note:"<b>Three graded items inside 3 days:</b> MATH 225 Quiz 4 (Nov 5) lands just two days before the <b>BIOL 102 Midterm (Sat Nov 7, 11am–1pm)</b>, plus the COGS 100 Memory Test (Nov 6 — window's been open since Oct 26). Saturday afternoon is recovery, not study time.",
       due:{
         Mon:[{text:"PHYS 242 Problem Set 5 due", weight:2}],
         Sat:[{text:"BIOL 102 MIDTERM · 11am–1pm", weight:20}],
-        Fri:[{text:"COGS 100 Assignment 1 due (–Sun)", weight:10}],
+        Fri:[{text:"COGS 100 Memory Test due (window open since Oct 26)", weight:5}],
       },
-      overrides:[{day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 3B)", weight:4}],
+      overrides:[
+        {day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 3B)", weight:4},
+        {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 4", weight:10},
+      ],
       satOverride:{start:"11:00", end:"13:00", label:"BIOL 102 — MIDTERM EXAM", cat:"exam", weight:20},
       crunch:true },
 
@@ -506,17 +524,23 @@
       overrides:[{day:"Wed", match:"PHYS 242 — Tutorial", flag:true, append:" — Quiz 2", weight:4}], crunch:false },
 
     { id:"w10", label:"Wk 10 · Nov 16", range:"Nov 16–22", dates:weekDates(2026,10,16),
-      note:"Lighter on paper — just a BIOL lab quiz Thursday. Good week to get ahead on MATH 112 / COGS 100 / PHYS review before Week 11.",
+      note:"MATH 225 Quiz 5 lands the same day (Thu Nov 19) as BIOL Pre-Lab Quiz #4 — a real collision even though the week looks light otherwise. Good week to get ahead on MATH 112 / COGS 100 / PHYS review before Week 11.",
       due:{
         Mon:[{text:"PHYS 242 Problem Set 7 due", weight:2}],
-        Thu:[{text:"BIOL Lab 4A quiz due", weight:2}],
-      }, overrides:[], crunch:false },
+        Thu:[{text:"BIOL Pre-Lab Quiz #4 due (Lab 4A)", weight:2}],
+      },
+      overrides:[
+        {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 5", weight:10},
+      ], crunch:false },
 
     { id:"w11", label:"Wk 11 · Nov 23 ⚑", range:"Nov 23–29", dates:weekDates(2026,10,23),
-      note:"<b>Hardest week of the term.</b> PHYS Quiz 3 (Wed), MATH 112 Quiz 3 &amp; COGS 100 Quiz 2 both Thu, COGS tutorial Fri (time TBC), BIOL Lab 4B in-person, BIOL DSMs due Sat. Start review for the Nov 25–26 assessments the weekend before — there isn't enough room inside this week alone.",
+      note:"<b>Hardest week of the term.</b> PHYS Quiz 3 (Wed), MATH 112 Quiz 3 &amp; COGS 100 Quiz 2 both Thu, then Fri brings the COGS tutorial (time TBC) plus its Finite State Machine and Logical Models assignment due same-day (no separate window, unlike the Memory Test), BIOL Lab 4B in-person, BIOL DSMs due Sat. Start review for the Nov 25–26 assessments the weekend before — there isn't enough room inside this week alone.",
       due:{
         Mon:[{text:"PHYS 242 Problem Set 8 due", weight:2}],
-        Fri:[{text:"COGS 100 tutorial (time TBC)", weight:0}],
+        Fri:[
+          {text:"COGS 100 tutorial (time TBC)", weight:0},
+          {text:"COGS 100 Finite State Machine and Logical Models due (same day, no separate window)", weight:5},
+        ],
         Sat:[{text:"BIOL DSMs 18,20 due", weight:0.76}],
       },
       overrides:[
@@ -527,12 +551,15 @@
       ], crunch:true },
 
     { id:"w12", label:"Wk 12 · Nov 30", range:"Nov 30–Dec 4", dates:weekDates(2026,10,30),
-      note:"Closes out BIOL's term work: Lecture Quiz 4 (Fri) and the final DSM batch (Sat). Final exam dates should be posted on SOLUS by now — once confirmed, come back and block review time in the Sunday planning slot.",
+      note:"MATH 225 Quiz 6 (Dec 3, the last one — best 4 of 6 count) lands right before BIOL closes out its term work: Lecture Quiz 4 (Fri) and the final DSM batch (Sat). Final exam dates should be posted on SOLUS by now — once confirmed, come back and block review time in the Sunday planning slot.",
       due:{
         Mon:[{text:"PHYS 242 Problem Set 9 due", weight:2}],
         Fri:[{text:"BIOL Lecture Quiz 4 due", weight:5}],
-        Sat:[{text:"Final BIOL DSM batch due", weight:2.67}],
-      }, overrides:[], crunch:false },
+        Sat:[{text:"BIOL DSMs 19,14,15 due", weight:2.67}],
+      },
+      overrides:[
+        {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 6", weight:10},
+      ], crunch:false },
 
     { id:"exam", label:"Exam period · Dec", range:"December (dates TBA)", dates:null, noClasses:true,
       note:"All five finals fall in this window — exact dates weren't published in any syllabus yet. MATH 112 (55% final weight + the 38% pass floor) and MATH 225 (60% final weight) should get first claim on review time, with COGS 100 (50% final weight) close behind. Come back and fill in real dates once SOLUS posts them.",
@@ -573,9 +600,10 @@
       Object.keys(week.due||{}).forEach(day=>{
         (week.due[day]||[]).forEach(entry=>{
           const text = entry.text;
-          if(/lab/i.test(text)) dueCovered.add(week.id+"|"+day+"|lab");
-          if(/midterm/i.test(text)) dueCovered.add(week.id+"|"+day+"|exam");
-          if(/quiz/i.test(text)) dueCovered.add(week.id+"|"+day+"|quiz");
+          const c = detectCourse(text);
+          if(/lab/i.test(text)) dueCovered.add(week.id+"|"+day+"|"+c+"|lab");
+          if(/midterm/i.test(text)) dueCovered.add(week.id+"|"+day+"|"+c+"|exam");
+          if(/quiz/i.test(text)) dueCovered.add(week.id+"|"+day+"|"+c+"|quiz");
         });
       });
     });
@@ -585,21 +613,21 @@
           const text = entry.text;
           const course = detectCourse(text);
           const kind = /midterm/i.test(text) ? "exam" : /quiz/i.test(text) ? "quiz" : /lab/i.test(text) ? "lab" : "task";
-          items.push({ id:"due-"+week.id+"-"+day+"-"+idx, weekId:week.id, day, date:null, text, course, kind, weight:entry.weight||0 });
+          items.push({ id:"due-"+week.id+"-"+day+"-"+idx, weekId:week.id, day, date:null, text, course, kind, weight:entry.weight||0, graded:entry.graded!==false });
         });
       });
       (week.overrides||[]).forEach(ov=>{
         if(!ov.flag && !ov.exam) return;
         const kind = ov.exam ? "exam" : /lab/i.test(ov.match||"") ? "lab" : "quiz";
-        if(dueCovered.has(week.id+"|"+ov.day+"|"+kind)) return;
-        const rawText = ov.newLabel ? stripPart(ov.newLabel) : ((ov.match||"") + (ov.append||""));
         const course = detectCourse(ov.match || ov.newLabel || "");
+        if(dueCovered.has(week.id+"|"+ov.day+"|"+course+"|"+kind)) return;
+        const rawText = ov.newLabel ? stripPart(ov.newLabel) : ((ov.match||"") + (ov.append||""));
         const dedupKey = week.id+"|"+course+"|"+kind+"|"+rawText;
         if(seenOv.has(dedupKey)) return;
         seenOv.add(dedupKey);
         items.push({ id:"ov-"+dedupKey, weekId:week.id, day:ov.day, date:null, text:rawText, course, kind, weight:ov.weight||0 });
       });
-      if(week.satOverride && !dueCovered.has(week.id+"|Sat|exam")){
+      if(week.satOverride && !dueCovered.has(week.id+"|Sat|"+detectCourse(week.satOverride.label)+"|exam")){
         const so = week.satOverride;
         items.push({ id:"sat-"+week.id, weekId:week.id, day:"Sat", date:null, text:so.label, course:detectCourse(so.label), kind:"exam", weight:so.weight||0 });
       }
@@ -684,6 +712,15 @@
       { text:"Practice separable first-order equations from Assignment 1 (and 2, if posted) — do them solo, not just read the solutions", minutes:40 },
       { text:"Skim Week 1–2 course notes for anything not covered above", minutes:15 },
     ],
+    "due-w2-Thu-0": [
+      { text:"Complete the online pre-lab activity for Lab 1A — not started as of the day before, don't leave it to the last minute", minutes:20 },
+    ],
+    "due-w2-Fri-0": [
+      { text:"Complete MATH 225 Assignment 1 closed-book, timed to ~30 min, as quiz rehearsal rather than homework to just finish", minutes:30 },
+    ],
+    "due-w3-Fri-1": [
+      { text:"Complete MATH 225 Assignment 2 closed-book, timed to ~30 min, as quiz rehearsal rather than homework to just finish", minutes:30 },
+    ],
     "due-w3-Thu-0": [
       { text:"Review Lab 1A pre-lab notes on scientific inquiry / the experimental method", minutes:15 },
     ],
@@ -712,12 +749,41 @@
       { text:"Review Week 1–4 course notes", minutes:30 },
     ],
     "due-w4-Thu-1": [
-      { text:"Complete the Scavenger Hunt, Academics 101, and Biosafety Training activities — the Academic Integrity portion specifically reappears on the final", minutes:45 },
+      { text:"Complete the online pre-lab activity for Lab 2A", minutes:15 },
     ],
-    "ov-w5|MATH225|quiz|MATH 225 — Tutorial — Quiz 2 (~this week)": [
+    "due-w4-Thu-2": [
+      { text:"Complete the Scavenger Hunt", minutes:20 },
+    ],
+    "due-w4-Thu-3": [
+      { text:"Complete Academics 101 — the Academic Integrity portion specifically reappears on the final", minutes:15 },
+    ],
+    "due-w4-Thu-4": [
+      { text:"Attempt the Biosafety Quiz — need ≥50% to unlock Labs 2B/2C, retry if you don't clear it", minutes:15 },
+    ],
+    "ov-w5|MATH225|quiz|MATH 225 — Tutorial — Quiz 2": [
       { text:"Review exact equations and integrating factors (next technique after separable equations) — inferred sequencing, confirm against your actual notes", minutes:30 },
       { text:"Redo the relevant assignment(s) posted since Quiz 1", minutes:40 },
       { text:"Quick review of Quiz 1 topics, since the rolling-window rule means some overlap", minutes:15 },
+    ],
+    "ov-w6|MATH225|quiz|MATH 225 — Tutorial — Quiz 3": [
+      { text:"Review linear higher-order equations (next technique after exact equations) — inferred sequencing, confirm against your actual notes", minutes:30 },
+      { text:"Redo the relevant assignment(s) posted since Quiz 2", minutes:40 },
+      { text:"Quick review of Quiz 1–2 topics, since the rolling-window rule means some overlap", minutes:15 },
+    ],
+    "ov-w8|MATH225|quiz|MATH 225 — Tutorial — Quiz 4": [
+      { text:"Review linear vector systems (next technique after linear higher-order equations) — inferred sequencing, confirm against your actual notes", minutes:30 },
+      { text:"Redo the relevant assignment(s) posted since Quiz 3", minutes:40 },
+      { text:"Quick review of Quiz 2–3 topics, since the rolling-window rule means some overlap", minutes:15 },
+    ],
+    "ov-w10|MATH225|quiz|MATH 225 — Tutorial — Quiz 5": [
+      { text:"Review Laplace transforms (next learning outcome after solution techniques) — inferred sequencing, confirm against your actual notes", minutes:30 },
+      { text:"Redo the relevant assignment(s) posted since Quiz 4", minutes:40 },
+      { text:"Quick review of Quiz 3–4 topics, since the rolling-window rule means some overlap", minutes:15 },
+    ],
+    "ov-w12|MATH225|quiz|MATH 225 — Tutorial — Quiz 6": [
+      { text:"Review modelling / interpretation (the applied capstone learning outcome) — inferred sequencing, confirm against your actual notes", minutes:30 },
+      { text:"Redo the relevant assignment(s) posted since Quiz 5", minutes:40 },
+      { text:"Quick review of Quiz 4–5 topics, since the rolling-window rule means some overlap", minutes:15 },
     ],
     "ov-w5|PHYS242|quiz|PHYS 242 — Tutorial — Quiz 1": [
       { text:"Review Einstein's Postulates, time dilation, length contraction, simultaneity (Week 3)", minutes:25 },
@@ -779,8 +845,8 @@
       { text:"Review your Lab 3A pre-lab notes before this session", minutes:15 },
     ],
     "due-w8-Fri-0": [
-      { text:"Review the mental-representations material from Weeks 5–7 (logic/rule systems, concepts, analogy, image/network) that the assignment builds on", minutes:25 },
-      { text:"Complete the assignment during/after the tutorial session", minutes:75 },
+      { text:"Review the mental-representations / memory material this test builds on", minutes:25 },
+      { text:"Complete the Memory Test — window's been open since Oct 26, don't leave it to the deadline", minutes:45 },
     ],
     "ov-w9|PHYS242|quiz|PHYS 242 — Tutorial — Quiz 2": [
       { text:"Relativistic momentum, energy, dynamics (Wk5)", minutes:20 },
@@ -818,6 +884,10 @@
     ],
     "ov-w11|BIOL102|lab|BIOL 102 — Lab (Lab 4B)": [
       { text:"Review your Lab 4A pre-lab notes before this session", minutes:15 },
+    ],
+    "due-w11-Fri-1": [
+      { text:"Review Weeks 8–11 mental-models/cognitive-modeling material this assignment builds on", minutes:20 },
+      { text:"Complete the Finite State Machine and Logical Models assignment — no separate window, due same day as the tutorial", minutes:60 },
     ],
     "due-w11-Sat-0": [
       { text:"Work through DSMs 18, 20", minutes:25 },
@@ -1217,12 +1287,13 @@
     const overdue = date && date < today && !done;
     const dateStr = date ? date.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}) : "TBA";
     const color = "var(--"+(COURSE_COLOR[item.course]||"class")+")";
-    const weightStr = item.weight ? (Math.round(item.weight*10)/10)+"%" : "";
-    return `<label class="todo-row${small?" small":""}${done?" done":""}${overdue?" overdue":""}">
+    const ungraded = item.graded===false;
+    const weightStr = ungraded ? "Ungraded" : (item.weight ? (Math.round(item.weight*10)/10)+"%" : "");
+    return `<label class="todo-row${small?" small":""}${done?" done":""}${overdue?" overdue":""}${ungraded?" ungraded":""}">
       <input type="checkbox" data-id="${item.id}" ${done?"checked":""} style="accent-color:${color}">
       ${small?"":`<span class="todo-course" style="color:${color}">${COURSE_NAMES[item.course]||item.course}</span>`}
       <span class="todo-text">${item.text}</span>
-      ${weightStr && !small ? `<span class="todo-weight mono">${weightStr}</span>` : ""}
+      ${weightStr && !small ? `<span class="todo-weight mono${ungraded?" ungraded":""}">${weightStr}</span>` : ""}
       <span class="todo-date mono">${dateStr}</span>
     </label>`;
   }
@@ -1251,21 +1322,26 @@
   function renderProgress(){
     const el = document.getElementById("proglist");
     const courses = Object.keys(COURSE_NAMES);
+    const byDate = (a,b)=>{
+      const da = resolveDeadlineDate(a), db = resolveDeadlineDate(b);
+      return (da?da.getTime():Infinity) - (db?db.getTime():Infinity);
+    };
     el.innerHTML = courses.map(c=>{
-      const items = DEADLINES.filter(i=>i.course===c).sort((a,b)=>{
-        const da = resolveDeadlineDate(a), db = resolveDeadlineDate(b);
-        return (da?da.getTime():Infinity) - (db?db.getTime():Infinity);
-      });
-      const doneCount = items.filter(i=>isDone(i.id)).length;
-      const pct = items.length ? Math.round(doneCount/items.length*100) : 0;
+      const all = DEADLINES.filter(i=>i.course===c);
+      const graded = all.filter(i=>i.graded!==false).sort(byDate);
+      const ungraded = all.filter(i=>i.graded===false).sort(byDate);
+      const doneCount = graded.filter(i=>isDone(i.id)).length;
+      const pct = graded.length ? Math.round(doneCount/graded.length*100) : 0;
       const color = "var(--"+COURSE_COLOR[c]+")";
       return `<div class="course-card">
         <div class="course-head">
           <span class="course-name" style="color:${color}">${COURSE_NAMES[c]}</span>
-          <span class="course-count mono">${doneCount}/${items.length} done</span>
+          <span class="course-count mono">${doneCount}/${graded.length} for marks</span>
         </div>
         <div class="course-bar-track"><div class="course-bar-fill" style="width:${pct}%;background:${color}"></div></div>
-        <div class="course-items">${items.map(i=>todoRowHtml(i,true)).join("")}</div>
+        <div class="course-items">${graded.map(i=>todoRowHtml(i,true)).join("")}</div>
+        ${ungraded.length ? `<div class="course-subhead">Practice · ungraded</div>
+        <div class="course-items">${ungraded.map(i=>todoRowHtml(i,true)).join("")}</div>` : ""}
       </div>`;
     }).join("");
     el.querySelectorAll("input[type=checkbox]").forEach(cb=>{
