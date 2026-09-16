@@ -1549,6 +1549,11 @@
     "Dunning Hall AUD": "Dunning Hall, Queen's University, Kingston, ON",
     "Biosciences Complex 2320": "Biosciences Complex, Queen's University, Kingston, ON",
   };
+  // transit:// is a native-app URL scheme — only meaningful on a device that
+  // could actually have the Transit app installed.
+  function isMobileDevice(){
+    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  }
   function openLocationModal(label, location, date, start, end){
     openBlock = null;
     document.getElementById("modalTitle").textContent = label;
@@ -1563,7 +1568,7 @@
       <div class="location-info">📍 ${location}</div>
       <div class="location-actions">
         <a class="location-btn" href="${mapsUrl}" target="_blank" rel="noopener">Open in Google Maps</a>
-        <a class="location-btn" href="${transitUrl}">Open in Transit app</a>
+        ${isMobileDevice() ? `<a class="location-btn" href="${transitUrl}">Open in Transit app</a>` : ""}
       </div>
     `;
     document.getElementById("modalBackdrop").hidden = false;
