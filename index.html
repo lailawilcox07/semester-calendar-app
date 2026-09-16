@@ -233,6 +233,14 @@
   }
   .modal-body{padding:14px 16px 20px;}
   .modal-empty{color:var(--muted); font-size:13.5px; padding:10px 2px;}
+  .loc-pin{font-size:9px; opacity:.8;}
+  .location-info{font-size:14px; color:var(--ink); margin-bottom:18px; font-weight:600;}
+  .location-actions{display:flex; flex-direction:column; gap:10px;}
+  .location-btn{
+    display:block; text-align:center; padding:13px; border-radius:10px; border:1px solid var(--line);
+    background:var(--bg); color:var(--ink); font-weight:600; font-size:14px; text-decoration:none;
+  }
+  .location-btn:active{background:var(--line);}
   .task-row{
     display:flex; align-items:flex-start; gap:10px; padding:10px 4px; border-bottom:1px solid var(--line);
   }
@@ -328,7 +336,7 @@
       ["08:00","12:30","Study block","study"],
       ["12:30","13:00","Lunch","meal"],
       ["13:00","13:20","Walk to campus","commute"],
-      ["13:20","14:20","PHYS 242 — Lecture","class"],
+      ["13:20","14:20","PHYS 242 — Lecture","class","Stirling Hall AUD"],
       ["14:20","14:40","Walk home","commute"],
       ["14:40","17:30","Study block","study"],
       ["17:30","18:00","Dinner","meal"],
@@ -341,10 +349,10 @@
       ["07:30","08:00","Breakfast","meal"],
       ["08:00","09:00","Study block","study"],
       ["09:00","09:20","Walk to campus","commute"],
-      ["09:20","10:20","COGS 100 — Lecture","class"],
+      ["09:20","10:20","COGS 100 — Lecture","class","Humphrey Hall AUD"],
       ["10:20","11:20","Study (on campus)","study"],
-      ["11:20","12:20","MATH 225 — Lecture","class"],
-      ["12:20","13:20","MATH 112 — Lecture","class"],
+      ["11:20","12:20","MATH 225 — Lecture","class","Stirling Hall B"],
+      ["12:20","13:20","MATH 112 — Lecture","class","Ellis Hall AUD"],
       ["13:20","13:40","Walk home","commute"],
       ["13:40","14:10","Lunch","meal"],
       ["14:10","17:30","Study block","study"],
@@ -362,10 +370,10 @@
       ["10:35","11:30","Study block","study"],
       ["11:30","12:00","Lunch","meal"],
       ["12:00","12:20","Walk to campus","commute"],
-      ["12:20","13:20","PHYS 242 — Lecture","class"],
-      ["13:20","14:20","MATH 225 — Lecture","class"],
-      ["14:20","15:20","PHYS 242 — Tutorial","class"],
-      ["15:20","16:20","BIOL 102 — Lecture","class"],
+      ["12:20","13:20","PHYS 242 — Lecture","class","Stirling Hall AUD"],
+      ["13:20","14:20","MATH 225 — Lecture","class","Stirling Hall B"],
+      ["14:20","15:20","PHYS 242 — Tutorial","class","Mackintosh-Corry Hall B201"],
+      ["15:20","16:20","BIOL 102 — Lecture","class","Dunning Hall AUD"],
       ["16:20","16:40","Walk home","commute"],
       ["16:40","17:30","Break","break"],
       ["17:30","18:00","Dinner","meal"],
@@ -376,14 +384,14 @@
       ["07:00","07:30","Get ready","break"],
       ["07:30","08:00","Breakfast","meal"],
       ["08:00","08:20","Walk to campus","commute"],
-      ["08:20","09:20","COGS 100 — Lecture","class"],
+      ["08:20","09:20","COGS 100 — Lecture","class","Humphrey Hall AUD"],
       ["09:20","11:20","Study (on campus)","study"],
-      ["11:20","12:20","MATH 112 — Lecture","class"],
+      ["11:20","12:20","MATH 112 — Lecture","class","Ellis Hall AUD"],
       ["12:20","12:50","Lunch (on campus)","meal"],
       ["12:50","14:20","Study (on campus)","study"],
-      ["14:20","15:50","BIOL 102 — Lab / Study block","class"],
+      ["14:20","15:50","BIOL 102 — Lab / Study block","class","Biosciences Complex 2320"],
       ["15:50","16:20","Study (on campus)","study"],
-      ["16:20","17:20","MATH 225 — Tutorial","class"],
+      ["16:20","17:20","MATH 225 — Tutorial","class","Stirling Hall C"],
       ["17:20","17:40","Walk home","commute"],
       ["17:40","18:10","Dinner","meal"],
       ["18:10","21:30","Study block","study"],
@@ -394,11 +402,11 @@
       ["07:30","08:00","Breakfast","meal"],
       ["08:00","10:00","Study block","study"],
       ["10:00","10:20","Walk to campus","commute"],
-      ["10:20","11:20","COGS 100 — Lecture","class"],
-      ["11:20","12:20","PHYS 242 — Lecture","class"],
-      ["12:20","13:20","MATH 225 — Lecture","class"],
-      ["13:20","14:20","MATH 112 — Lecture","class"],
-      ["14:20","15:20","BIOL 102 — Lecture","class"],
+      ["10:20","11:20","COGS 100 — Lecture","class","Humphrey Hall AUD"],
+      ["11:20","12:20","PHYS 242 — Lecture","class","Stirling Hall AUD"],
+      ["12:20","13:20","MATH 225 — Lecture","class","Stirling Hall B"],
+      ["13:20","14:20","MATH 112 — Lecture","class","Ellis Hall AUD"],
+      ["14:20","15:20","BIOL 102 — Lecture","class","Dunning Hall AUD"],
       ["15:20","15:40","Walk home","commute"],
       ["15:40","16:10","Lunch","meal"],
       ["16:10","18:00","Light review","study"],
@@ -1203,7 +1211,7 @@
         if(b[2].indexOf(ov.match)!==-1){
           if(ov.exam){ b[2]=ov.newLabel; b[3]="exam"; }
           if(ov.append) b[2]=b[2]+ov.append;
-          if(ov.flag) b[4]="flag";
+          if(ov.flag) b[5]="flag";
           if(ov.cancel){ b[2]=b[2]+" — No class this week"; b[3]="study"; }
         }
       });
@@ -1269,12 +1277,13 @@
 
       const now = new Date();
       buildDayBlocks(week, day).forEach(b=>{
-        const [start,end,label,cat,flagMark] = b;
+        const [start,end,label,cat,location,flagMark] = b;
         const top = (toMin(start)-START_MIN)*PPM;
         const height = (toMin(end)-toMin(start))*PPM;
         const div = document.createElement("div");
         const blockId = "blk-"+week.id+"-"+day+"-"+start;
         let autoByTime = false;
+        const blockDate = week.dates ? week.dates[i] : null;
         if(week.dates){
           const [eh,em] = end.split(":").map(Number);
           const blockEnd = new Date(week.dates[i]); blockEnd.setHours(eh,em,0,0);
@@ -1284,15 +1293,17 @@
         div.className = "block " + cat + (flagMark ? " flagged" : "") + (done ? " done" : "");
         div.style.top = top+"px";
         div.style.height = Math.max(height,16)+"px";
-        div.innerHTML = `<span class="t"><input type="checkbox" class="block-check" ${done?"checked":""} aria-label="Mark done">${fmt(start)}–${fmt(end)}</span><span class="l">${label}</span>`;
+        div.innerHTML = `<span class="t"><input type="checkbox" class="block-check" ${done?"checked":""} aria-label="Mark done">${fmt(start)}–${fmt(end)}</span><span class="l">${label}${location?' <span class="loc-pin">📍</span>':""}</span>`;
         div.querySelector(".block-check").addEventListener("click", e=>{
           e.stopPropagation();
           toggleBlockDone(blockId, autoByTime);
         });
         if(cat==="study"){
           div.style.cursor = "pointer";
-          const blockDate = week.dates ? week.dates[i] : null;
           div.addEventListener("click", ()=> openBlockModal(blockDate, start, end, label));
+        } else if(location){
+          div.style.cursor = "pointer";
+          div.addEventListener("click", ()=> openLocationModal(label, location, blockDate, start, end));
         }
         col.appendChild(div);
       });
@@ -1522,6 +1533,36 @@
     renderDue();
     renderProgress();
     renderNowStrip();
+  }
+
+  // ---- location modal ----
+  // Room numbers (AUD, B201, etc.) don't geocode well on their own, so the maps
+  // query uses just the building name + campus, while the room still shows in
+  // the modal for you to find once you're in the building.
+  const LOCATIONS = {
+    "Stirling Hall AUD": "Stirling Hall, Queen's University, Kingston, ON",
+    "Mackintosh-Corry Hall B201": "Mackintosh-Corry Hall, Queen's University, Kingston, ON",
+    "Humphrey Hall AUD": "Humphrey Hall, Queen's University, Kingston, ON",
+    "Stirling Hall B": "Stirling Hall, Queen's University, Kingston, ON",
+    "Stirling Hall C": "Stirling Hall, Queen's University, Kingston, ON",
+    "Ellis Hall AUD": "Ellis Hall, Queen's University, Kingston, ON",
+    "Dunning Hall AUD": "Dunning Hall, Queen's University, Kingston, ON",
+    "Biosciences Complex 2320": "Biosciences Complex, Queen's University, Kingston, ON",
+  };
+  function openLocationModal(label, location, date, start, end){
+    openBlock = null;
+    document.getElementById("modalTitle").textContent = label;
+    document.getElementById("modalSub").textContent =
+      (date ? date.toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"})+" · " : "") + fmt(start)+"–"+fmt(end);
+    const mapsUrl = "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(LOCATIONS[location]||location);
+    document.getElementById("modalBody").innerHTML = `
+      <div class="location-info">📍 ${location}</div>
+      <div class="location-actions">
+        <a class="location-btn" href="${mapsUrl}" target="_blank" rel="noopener">Open in Google Maps</a>
+        <a class="location-btn" href="https://transitapp.com/" target="_blank" rel="noopener">Open Transit app</a>
+      </div>
+    `;
+    document.getElementById("modalBackdrop").hidden = false;
   }
 
   // ---- block detail modal ----
