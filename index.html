@@ -1554,12 +1554,16 @@
     document.getElementById("modalTitle").textContent = label;
     document.getElementById("modalSub").textContent =
       (date ? date.toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"})+" · " : "") + fmt(start)+"–"+fmt(end);
-    const mapsUrl = "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(LOCATIONS[location]||location);
+    const dest = LOCATIONS[location]||location;
+    const mapsUrl = "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(dest);
+    // Transit's documented URL scheme (transitapp.com/developers): transit://directions?to=...
+    // Omitting "from" makes it use your current location as the origin.
+    const transitUrl = "transit://directions?to="+encodeURIComponent(dest);
     document.getElementById("modalBody").innerHTML = `
       <div class="location-info">📍 ${location}</div>
       <div class="location-actions">
         <a class="location-btn" href="${mapsUrl}" target="_blank" rel="noopener">Open in Google Maps</a>
-        <a class="location-btn" href="https://transitapp.com/" target="_blank" rel="noopener">Open Transit app</a>
+        <a class="location-btn" href="${transitUrl}">Open in Transit app</a>
       </div>
     `;
     document.getElementById("modalBackdrop").hidden = false;
