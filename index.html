@@ -15,20 +15,22 @@
     --ink:#24211D;
     --muted:#8A8377;
     --line:#E3DFD6;
-    --class:#355E56;
-    --class-tint:#E4ECE9;
+    --class:#1E9C99;
+    --class-tint:#DFF3F2;
     --study:#B07A2C;
     --study-tint:#F5E9D7;
-    --commute:#55677E;
-    --commute-tint:#E7EAEF;
-    --sport:#A2492F;
-    --sport-tint:#F3E2DB;
+    --commute:#3D6E96;
+    --commute-tint:#E1EAF1;
+    --sport:#C23B2E;
+    --sport-tint:#F6E1DE;
     --sleep:#6B5670;
     --sleep-tint:#EBE5EC;
-    --personal:#6E7F52;
-    --personal-tint:#E9EDE2;
-    --therapy:#3D6E96;
-    --therapy-tint:#E1EAF1;
+    --meal:#4A8B57;
+    --meal-tint:#E3EFE4;
+    --break:#26415F;
+    --break-tint:#E3E7EC;
+    --therapy:#CC4488;
+    --therapy-tint:#F8E1EC;
     --downtime:#A85B6E;
     --downtime-tint:#F2E3E6;
     --flag:#B23A48;
@@ -36,26 +38,28 @@
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
       --bg:#1B1916; --surface:#242220; --ink:#EDE9E2; --muted:#A69E8F; --line:#3A362F;
-      --class:#7FB3A6; --class-tint:#26332F;
+      --class:#6FD4CE; --class-tint:#1B3634;
       --study:#E0A855; --study-tint:#3A2E1C;
-      --commute:#9AB0CB; --commute-tint:#28303B;
-      --sport:#E08064; --sport-tint:#3A2621;
+      --commute:#8FB8D9; --commute-tint:#22323F;
+      --sport:#E8776A; --sport-tint:#3D2420;
       --sleep:#C7A9CC; --sleep-tint:#332B37;
-      --personal:#B7CB93; --personal-tint:#2B3122;
-      --therapy:#8FB8D9; --therapy-tint:#22323F;
+      --meal:#8FC79A; --meal-tint:#24352A;
+      --break:#7FA5C9; --break-tint:#1E2C3A;
+      --therapy:#E599C4; --therapy-tint:#3A2530;
       --downtime:#D99BAC; --downtime-tint:#3A262B;
       --flag:#F0798A;
     }
   }
   :root[data-theme="dark"]{
     --bg:#1B1916; --surface:#242220; --ink:#EDE9E2; --muted:#A69E8F; --line:#3A362F;
-    --class:#7FB3A6; --class-tint:#26332F;
+    --class:#6FD4CE; --class-tint:#1B3634;
     --study:#E0A855; --study-tint:#3A2E1C;
-    --commute:#9AB0CB; --commute-tint:#28303B;
-    --sport:#E08064; --sport-tint:#3A2621;
+    --commute:#8FB8D9; --commute-tint:#22323F;
+    --sport:#E8776A; --sport-tint:#3D2420;
     --sleep:#C7A9CC; --sleep-tint:#332B37;
-    --personal:#B7CB93; --personal-tint:#2B3122;
-    --therapy:#8FB8D9; --therapy-tint:#22323F;
+    --meal:#8FC79A; --meal-tint:#24352A;
+    --break:#7FA5C9; --break-tint:#1E2C3A;
+    --therapy:#E599C4; --therapy-tint:#3A2530;
     --downtime:#D99BAC; --downtime-tint:#3A262B;
     --flag:#F0798A;
   }
@@ -162,7 +166,8 @@
   .block.commute{background:var(--commute-tint); color:var(--commute); border-color:var(--commute);}
   .block.sport{background:var(--sport-tint); color:var(--sport); border-color:var(--sport);}
   .block.sleep{background:var(--sleep-tint); color:var(--sleep); border-color:var(--sleep);}
-  .block.personal{background:var(--personal-tint); color:var(--personal); border-color:var(--personal);}
+  .block.meal{background:var(--meal-tint); color:var(--meal); border-color:var(--meal);}
+  .block.break{background:var(--break-tint); color:var(--break); border-color:var(--break);}
   .block.therapy{background:var(--therapy-tint); color:var(--therapy); border-color:var(--therapy);}
   .block.downtime{background:var(--downtime-tint); color:var(--downtime); border-color:var(--downtime);}
   .block.exam{background:var(--flag); color:#fff; border-color:var(--flag);}
@@ -313,20 +318,20 @@
 
   const base = {
     Mon: [
-      ["07:30","08:00","Wake / Breakfast","personal"],
+      ["07:30","08:00","Wake / Breakfast","meal"],
       ["08:00","12:40","Study block","study"],
-      ["12:40","13:10","Lunch","personal"],
+      ["12:40","13:10","Lunch","meal"],
       ["13:10","13:30","Walk to campus","commute"],
       ["13:30","14:30","PHYS 242 — Lecture","class"],
       ["14:30","14:50","Walk home","commute"],
       ["14:50","17:30","Study block","study"],
-      ["17:30","18:15","Dinner","personal"],
+      ["17:30","18:15","Dinner","meal"],
       ["18:15","20:00","Study block","study"],
       ["20:00","21:30","Soccer","sport"],
       ["21:30","22:30","Wind-down","sleep"],
     ],
     Tue: [
-      ["07:30","08:00","Wake / Breakfast","personal"],
+      ["07:30","08:00","Wake / Breakfast","meal"],
       ["08:00","09:10","Study block","study"],
       ["09:10","09:30","Walk to campus","commute"],
       ["09:30","10:30","COGS 100 — Lecture","class"],
@@ -334,49 +339,49 @@
       ["11:30","12:30","MATH 225 — Lecture","class"],
       ["12:30","13:30","MATH 112 — Lecture","class"],
       ["13:30","13:50","Walk home","commute"],
-      ["13:50","14:30","Lunch","personal"],
+      ["13:50","14:30","Lunch","meal"],
       ["14:30","17:30","Study block","study"],
-      ["17:30","18:15","Dinner","personal"],
+      ["17:30","18:15","Dinner","meal"],
       ["18:15","21:30","Study block","study"],
       ["21:30","22:30","Wind-down","sleep"],
     ],
     Wed: [
-      ["07:30","08:00","Wake / Breakfast","personal"],
+      ["07:30","08:00","Wake / Breakfast","meal"],
       ["08:00","08:25","Study block","study"],
       ["08:25","09:00","Travel to therapy","commute"],
       ["09:00","10:00","Therapy","therapy"],
       ["10:00","10:35","Travel home","commute"],
       ["10:35","11:40","Study block","study"],
-      ["11:40","12:10","Lunch","personal"],
+      ["11:40","12:10","Lunch","meal"],
       ["12:10","12:30","Walk to campus","commute"],
       ["12:30","13:30","PHYS 242 — Lecture","class"],
       ["13:30","14:30","MATH 225 — Lecture","class"],
       ["14:30","15:30","PHYS 242 — Tutorial","class"],
       ["15:30","16:30","BIOL 102 — Lecture","class"],
       ["16:30","16:50","Walk home","commute"],
-      ["16:50","17:30","Break","personal"],
-      ["17:30","18:15","Dinner","personal"],
+      ["16:50","17:30","Break","break"],
+      ["17:30","18:15","Dinner","meal"],
       ["18:15","21:30","Study block","study"],
       ["21:30","22:30","Wind-down","sleep"],
     ],
     Thu: [
-      ["07:20","08:10","Wake / Breakfast (early)","personal"],
+      ["07:20","08:10","Wake / Breakfast (early)","meal"],
       ["08:10","08:30","Walk to campus","commute"],
       ["08:30","09:30","COGS 100 — Lecture","class"],
       ["09:30","11:30","Study (on campus)","study"],
       ["11:30","12:30","MATH 112 — Lecture","class"],
-      ["12:30","13:15","Lunch","personal"],
+      ["12:30","13:15","Lunch (on campus)","meal"],
       ["13:15","14:30","Study (on campus)","study"],
       ["14:30","16:00","BIOL 102 — Lab / Study block","class"],
       ["16:00","16:30","Study (on campus)","study"],
       ["16:30","17:30","MATH 225 — Tutorial","class"],
       ["17:30","17:50","Walk home","commute"],
-      ["17:50","18:30","Dinner","personal"],
+      ["17:50","18:30","Dinner","meal"],
       ["18:30","21:30","Study block","study"],
       ["21:30","22:30","Wind-down","sleep"],
     ],
     Fri: [
-      ["07:30","08:00","Wake / Breakfast","personal"],
+      ["07:30","08:00","Wake / Breakfast","meal"],
       ["08:00","10:10","Study block","study"],
       ["10:10","10:30","Walk to campus","commute"],
       ["10:30","11:30","COGS 100 — Lecture","class"],
@@ -385,44 +390,44 @@
       ["13:30","14:30","MATH 112 — Lecture","class"],
       ["14:30","15:30","BIOL 102 — Lecture","class"],
       ["15:30","15:50","Walk home","commute"],
-      ["15:50","16:30","Lunch","personal"],
+      ["15:50","16:30","Lunch","meal"],
       ["16:30","18:00","Light review","study"],
-      ["18:00","18:45","Dinner","personal"],
+      ["18:00","18:45","Dinner","meal"],
       ["18:45","21:30","Protected downtime","downtime"],
       ["21:30","22:30","Wind-down","sleep"],
     ],
     Sat: [
-      ["07:30","08:00","Wake / Breakfast","personal"],
+      ["07:30","08:00","Wake / Breakfast","meal"],
       ["08:00","11:30","Deep work block","study"],
-      ["11:30","12:15","Lunch","personal"],
+      ["11:30","12:15","Lunch","meal"],
       ["12:15","15:00","Study block","study"],
-      ["15:00","16:00","Break / errands","personal"],
+      ["15:00","16:00","Break / errands","break"],
       ["16:00","18:00","Light review","study"],
-      ["18:00","18:45","Dinner","personal"],
+      ["18:00","18:45","Dinner","meal"],
       ["18:45","21:30","Protected downtime","downtime"],
       ["21:30","22:30","Wind-down","sleep"],
     ],
     Sun: [
-      ["07:30","08:00","Wake / Breakfast","personal"],
+      ["07:30","08:00","Wake / Breakfast","meal"],
       ["08:00","10:30","BIOL Anki / DSM block","study"],
-      ["10:30","11:00","Break","personal"],
+      ["10:30","11:00","Break","break"],
       ["11:00","13:00","Finish PHYS problem set","study"],
-      ["13:00","13:45","Lunch","personal"],
+      ["13:00","13:45","Lunch","meal"],
       ["13:45","16:00","Flex study block","study"],
-      ["16:00","17:00","Break","personal"],
+      ["16:00","17:00","Break","break"],
       ["17:00","18:30","Weekly planning","study"],
-      ["18:30","19:15","Dinner","personal"],
+      ["18:30","19:15","Dinner","meal"],
       ["19:15","21:30","Protected downtime","downtime"],
       ["21:30","22:30","Wind-down","sleep"],
     ],
   };
 
   const noClassDay = [
-    ["07:30","08:00","Wake / Breakfast","personal"],
+    ["07:30","08:00","Wake / Breakfast","meal"],
     ["08:00","12:15","Open study block (no classes)","study"],
-    ["12:15","13:00","Lunch","personal"],
+    ["12:15","13:00","Lunch","meal"],
     ["13:00","17:30","Open study block (no classes)","study"],
-    ["17:30","18:15","Dinner","personal"],
+    ["17:30","18:15","Dinner","meal"],
     ["18:15","21:30","Study block","study"],
     ["21:30","22:30","Wind-down","sleep"],
   ];
@@ -586,7 +591,7 @@
   const examDates = { BIOL102:null, COGS100:null, MATH112:null, MATH225:null, PHYS242:null };
 
   const COURSE_NAMES = { BIOL102:"BIOL 102", COGS100:"COGS 100", MATH112:"MATH 112", MATH225:"MATH 225", PHYS242:"PHYS 242" };
-  const COURSE_COLOR = { BIOL102:"sport", COGS100:"commute", MATH112:"study", MATH225:"personal", PHYS242:"sleep" };
+  const COURSE_COLOR = { BIOL102:"sport", COGS100:"commute", MATH112:"study", MATH225:"meal", PHYS242:"sleep" };
   // % of final grade each course's final exam is worth (per course syllabus).
   const FINAL_WEIGHT = { BIOL102:20, COGS100:50, MATH112:55, MATH225:60, PHYS242:45 };
 
@@ -1133,9 +1138,10 @@
     ["class","Class / lecture / lab"],
     ["study","Study block"],
     ["commute","Walk to/from campus"],
+    ["break","Break"],
     ["sport","Soccer"],
     ["sleep","Sleep &amp; wind-down"],
-    ["personal","Meals"],
+    ["meal","Meals"],
     ["therapy","Therapy"],
     ["downtime","Protected downtime"],
   ];
