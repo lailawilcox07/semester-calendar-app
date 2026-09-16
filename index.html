@@ -435,6 +435,7 @@
     { id:"w3", label:"Wk 3 · Sep 21", range:"Sep 21–27", dates:weekDates(2026,8,21),
       note:"BIOL-heavy: <b>Lab 1B</b> in-person, <b>Lecture Quiz 1</b> due Fri, and the first <b>DSM batch (1–7)</b> due Sat.",
       due:{
+        Mon:[{text:"PHYS 242 Problem Set 1 due", weight:2}],
         Thu:[{text:"BIOL Lab 1B (in-person)", weight:4}],
         Fri:[{text:"BIOL Lecture Quiz 1 due", weight:5}],
         Sat:[{text:"BIOL DSMs 1–7 due", weight:2.67}],
@@ -444,7 +445,7 @@
     { id:"w4", label:"Wk 4 · Sep 28", range:"Sep 28–Oct 4", dates:weekDates(2026,8,28),
       note:"<b>MATH 112 Quiz 1</b> in class Thursday — shift extra review into Tue/Thu MATH 112 blocks. BIOL's \"Stuff You Should Know\" also due Thu. First PHYS problem set likely due around now too — confirm on onQ.",
       due:{
-        Mon:[{text:"PHYS 242 Problem Set 1 due (confirm exact date on onQ)", weight:2}],
+        Mon:[{text:"PHYS 242 Problem Set 2 due", weight:2}],
         Thu:[
           {text:"MATH 112 Quiz 1 (in class)", weight:15},
           {text:"BIOL \"Stuff You Should Know\" due", weight:1},
@@ -455,6 +456,7 @@
     { id:"w5", label:"Wk 5 · Oct 5", range:"Oct 5–11", dates:weekDates(2026,9,5),
       note:"<b>MATH 225 Quiz 2</b> (moved from the holiday) and <b>PHYS Quiz 1</b> both land this week, plus BIOL Lab 2B in-person.",
       due:{
+        Mon:[{text:"PHYS 242 Problem Set 3 due", weight:2}],
         Thu:[{text:"BIOL Lab 2B (in-person)", weight:4}],
         Sat:[{text:"BIOL DSMs 8–11 due", weight:1.52}],
       },
@@ -469,7 +471,10 @@
 
     { id:"w6", label:"Wk 6 · Oct 19 ⚑", range:"Oct 19–25", dates:weekDates(2026,9,19),
       note:"<b>Heaviest week so far.</b> MATH 112 Quiz 2 and COGS 100 Quiz 1 both on Thu Oct 22, BIOL Lecture Quiz 2 due Fri, BIOL Lab 2C in-person. Front-load MATH 112 / COGS 100 review into the weekend before.",
-      due:{Fri:[{text:"BIOL Lecture Quiz 2 due", weight:5}]},
+      due:{
+        Mon:[{text:"PHYS 242 Problem Set 4 due", weight:2}],
+        Fri:[{text:"BIOL Lecture Quiz 2 due", weight:5}],
+      },
       overrides:[
         {day:"Thu", match:"COGS 100", flag:true, append:" — Quiz 1", weight:20},
         {day:"Thu", match:"MATH 112", flag:true, append:" — Quiz 2", weight:15},
@@ -490,6 +495,7 @@
     { id:"w8", label:"Wk 8 · Nov 2 ⚑", range:"Nov 2–8", dates:weekDates(2026,10,2),
       note:"<b>BIOL 102 Midterm — Saturday Nov 7, 11am–1pm.</b> This replaces the normal Saturday deep-work block; treat Saturday afternoon as recovery, not study time. COGS 100 Assignment 1 also due Nov 6–8.",
       due:{
+        Mon:[{text:"PHYS 242 Problem Set 5 due", weight:2}],
         Sat:[{text:"BIOL 102 MIDTERM · 11am–1pm", weight:20}],
         Fri:[{text:"COGS 100 Assignment 1 due (–Sun)", weight:10}],
       },
@@ -500,6 +506,7 @@
     { id:"w9", label:"Wk 9 · Nov 9", range:"Nov 9–15", dates:weekDates(2026,10,9),
       note:"PHYS Quiz 2 (Wed tutorial) and BIOL Lecture Quiz 3 (due Fri) both fall this week — split flex time between them early.",
       due:{
+        Mon:[{text:"PHYS 242 Problem Set 6 due", weight:2}],
         Fri:[{text:"BIOL Lecture Quiz 3 due", weight:5}],
         Sat:[{text:"BIOL DSMs 16–17 due", weight:0.76}],
       },
@@ -507,11 +514,15 @@
 
     { id:"w10", label:"Wk 10 · Nov 16", range:"Nov 16–22", dates:weekDates(2026,10,16),
       note:"Lighter on paper — just a BIOL lab quiz Thursday. Good week to get ahead on MATH 112 / COGS 100 / PHYS review before Week 11.",
-      due:{Thu:[{text:"BIOL Lab 4A quiz due", weight:2}]}, overrides:[], crunch:false },
+      due:{
+        Mon:[{text:"PHYS 242 Problem Set 7 due", weight:2}],
+        Thu:[{text:"BIOL Lab 4A quiz due", weight:2}],
+      }, overrides:[], crunch:false },
 
     { id:"w11", label:"Wk 11 · Nov 23 ⚑", range:"Nov 23–29", dates:weekDates(2026,10,23),
       note:"<b>Hardest week of the term.</b> PHYS Quiz 3 (Wed), MATH 112 Quiz 3 &amp; COGS 100 Quiz 2 both Thu, COGS tutorial Fri (time TBC), BIOL Lab 4B in-person, BIOL DSMs due Sat. Start review for the Nov 25–26 assessments the weekend before — there isn't enough room inside this week alone.",
       due:{
+        Mon:[{text:"PHYS 242 Problem Set 8 due", weight:2}],
         Fri:[{text:"COGS 100 tutorial (time TBC)", weight:0}],
         Sat:[{text:"BIOL DSMs 18,20 due", weight:0.76}],
       },
@@ -525,6 +536,7 @@
     { id:"w12", label:"Wk 12 · Nov 30", range:"Nov 30–Dec 4", dates:weekDates(2026,10,30),
       note:"Closes out BIOL's term work: Lecture Quiz 4 (Fri) and the final DSM batch (Sat). Final exam dates should be posted on SOLUS by now — once confirmed, come back and block review time in the Sunday planning slot.",
       due:{
+        Mon:[{text:"PHYS 242 Problem Set 9 due", weight:2}],
         Fri:[{text:"BIOL Lecture Quiz 4 due", weight:5}],
         Sat:[{text:"Final BIOL DSM batch due", weight:2.67}],
       }, overrides:[], crunch:false },
@@ -621,6 +633,14 @@
   // lecture content I don't have access to). Anything not listed here falls back to
   // genericTasks() below. Add more entries here as you get the real breakdown for
   // later weeks — nothing else about the scheduler needs to change.
+  // Weekly PHYS 242 AI-Assisted Learning Problem Set (due Mondays, Weeks 3–6 and 8–12 —
+  // 9 sets total, confirmed) — attempt solo first since it's graded on the reasoning
+  // process, not just the answer. Budget ~1.5–2 hrs.
+  const PHYS_PS_TASKS = [
+    { text:"Attempt every problem yourself first, before any AI help", minutes:60 },
+    { text:"Work through remaining sticking points with AI as a tutor — ask it to explain steps, don't ask for the answer", minutes:40 },
+    { text:"Save/submit the chat session per the course's format", minutes:10 },
+  ];
   const TASKS = {
     "ov-w2|MATH225|quiz|MATH 225 — Tutorial — Quiz 1": [
       { text:"Review classification of ODEs (order, linearity, homogeneous vs. non-homogeneous)", minutes:20 },
@@ -641,11 +661,15 @@
       { text:"MasteringBiology DSMs 4–5", minutes:30 },
       { text:"MasteringBiology DSMs 6–7", minutes:30 },
     ],
-    "due-w4-Mon-0": [
-      { text:"Attempt the assigned PHYS problems solo first", minutes:35 },
-      { text:"Work through sticking points with AI as a tutor — ask it to explain steps, don't ask for the answer", minutes:30 },
-      { text:"Save/submit the chat session per the course's format", minutes:5 },
-    ],
+    "due-w3-Mon-0": PHYS_PS_TASKS,
+    "due-w4-Mon-0": PHYS_PS_TASKS,
+    "due-w5-Mon-0": PHYS_PS_TASKS,
+    "due-w6-Mon-0": PHYS_PS_TASKS,
+    "due-w8-Mon-0": PHYS_PS_TASKS,
+    "due-w9-Mon-0": PHYS_PS_TASKS,
+    "due-w10-Mon-0": PHYS_PS_TASKS,
+    "due-w11-Mon-0": PHYS_PS_TASKS,
+    "due-w12-Mon-0": PHYS_PS_TASKS,
     "due-w4-Thu-0": [
       { text:"Redo Homework Sets 1 and 2 fully on your own — quiz is \"mainly from homework sets 1 and 2\" per the syllabus", minutes:60 },
       { text:"Review Week 1–4 course notes", minutes:30 },
