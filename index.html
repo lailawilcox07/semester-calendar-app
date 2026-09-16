@@ -262,6 +262,7 @@
   <nav class="tabbar" id="tabbar">
     <button data-tab="cal" class="active" type="button">Calendar</button>
     <button data-tab="todo" type="button">To-Do</button>
+    <button data-tab="due" type="button">Due</button>
     <button data-tab="prog" type="button">Progress</button>
   </nav>
 
@@ -276,7 +277,11 @@
   </div>
 
   <div id="view-todo" hidden>
-    <div class="todolist" id="todolist"></div>
+    <div class="todolist" id="tasklist"></div>
+  </div>
+
+  <div id="view-due" hidden>
+    <div class="todolist" id="duelist"></div>
   </div>
 
   <div id="view-prog" hidden>
@@ -1098,9 +1103,6 @@
   function toggleTask(item, idx){
     const taskId = item.id+"::t"+idx;
     setDone(taskId, !isDone(taskId));
-    const tasks = getTasks(item);
-    const allDone = tasks.every((t,i)=> isDone(item.id+"::t"+i));
-    setDone(item.id, allDone);
     refreshAll();
     renderBlockModal();
   }
@@ -1322,8 +1324,8 @@
     </label>`;
   }
 
-  function renderTodo(){
-    const el = document.getElementById("todolist");
+  function renderDue(){
+    const el = document.getElementById("duelist");
     if(!DEADLINES.length){ el.innerHTML = `<div class="todo-empty">Nothing on the list.</div>`; return; }
 
     const undone = DEADLINES.filter(i=>!isDone(i.id)).sort((a,b)=> priorityScore(b)-priorityScore(a));
@@ -1339,6 +1341,74 @@
     el.innerHTML = html;
     el.querySelectorAll("input[type=checkbox]").forEach(cb=>{
       cb.addEventListener("change", ()=> toggleDone(cb.dataset.id));
+    });
+  }
+
+  // ---- to-do tab (study/prep tasks, as opposed to the Due tab's actual
+  // graded quizzes/assignments/exams) ----
+  function buildTaskTodo(){
+    // Includes completed tasks (shown checked/struck-through, not removed) so
+    // checking one off in this list doesn't make it vanish out from under you —
+    // same fix as the block modal, same reason.
+    const today = new Date(); today.setHours(0,0,0,0);
+    const items = [];
+    DEADLINES.forEach(item=>{
+      if(isDone(item.id)) return;
+      const date = resolveDeadlineDate(item);
+      if(!date) return; // TBA items (unpublished finals) have no useful urgency yet
+      const daysAhead = Math.round((date-today)/86400000);
+      if(daysAhead > leadDays(item)) return; // not worth surfacing yet
+      getTasks(item).forEach((t,idx)=>{
+        const taskId = item.id+"::t"+idx;
+        items.push({ taskId, text:t.text, minutes:t.minutes, item, score:priorityScore(item) });
+      });
+    });
+    WEEKLY_HABITS.forEach((h,hi)=>{
+      const periodStart = periodStartFor(today, h.weekStart);
+      const id = "habit-w-"+hi+"-"+periodStart.toDateString();
+      items.push({ taskId:id, text:h.text, minutes:h.minutes, item:{ course:h.course, text:"Weekly habit" }, score:-0.5 });
+    });
+    DAILY_HABITS.forEach(h=>{
+      const id = "habit-d-"+h.course+"-"+today.toDateString();
+      items.push({ taskId:id, text:h.text, minutes:h.minutes, item:{ course:h.course, text:"Daily habit" }, score:-0.5 });
+    });
+    return items;
+  }
+  function taskRowHtml(t){
+    const done = isDone(t.taskId);
+    const color = "var(--"+(COURSE_COLOR[t.item.course]||"class")+")";
+    return `<label class="todo-row${done?" done":""}">
+      <input type="checkbox" data-taskid="${t.taskId}" ${done?"checked":""} style="accent-color:${color}">
+      <span class="todo-course" style="color:${color}">${COURSE_NAMES[t.item.course]||t.item.course} · ${t.item.text}</span>
+      <span class="todo-text">${t.text}</span>
+    </label>`;
+  }
+  function renderTaskTodo(){
+    const el = document.getElementById("tasklist");
+    const tasks = buildTaskTodo();
+    if(!tasks.length){
+      el.innerHTML = `<div class="todo-empty">Nothing due soon enough to need study time yet — check back closer to your next deadline.</div>`;
+    } else {
+      const undone = tasks.filter(t=>!isDone(t.taskId)).sort((a,b)=> b.score-a.score);
+      const done = tasks.filter(t=>isDone(t.taskId));
+      let html = undone.map(taskRowHtml).join("");
+      if(done.length){
+        html += `<div class="todo-divider">Done</div>` + done.map(taskRowHtml).join("");
+      }
+      el.innerHTML = html;
+    }
+    el.querySelectorAll("input[type=checkbox]").forEach(cb=>{
+      cb.addEventListener("change", ()=>{
+        const taskId = cb.dataset.taskid;
+        if(taskId.indexOf("habit-")===0){
+          setDone(taskId, !isDone(taskId));
+          refreshAll();
+          return;
+        }
+        const [itemId, tIdx] = taskId.split("::t");
+        const item = DEADLINES.find(d=>d.id===itemId);
+        if(item) toggleTask(item, Number(tIdx));
+      });
     });
   }
 
@@ -1437,7 +1507,8 @@
 
   function refreshAll(){
     render(currentWeekId);
-    renderTodo();
+    renderTaskTodo();
+    renderDue();
     renderProgress();
     renderNowStrip();
   }
@@ -1523,14 +1594,17 @@
     const tab = btn.dataset.tab;
     document.getElementById("view-cal").hidden = tab!=="cal";
     document.getElementById("view-todo").hidden = tab!=="todo";
+    document.getElementById("view-due").hidden = tab!=="due";
     document.getElementById("view-prog").hidden = tab!=="prog";
-    if(tab==="todo") renderTodo();
+    if(tab==="todo") renderTaskTodo();
+    if(tab==="due") renderDue();
     if(tab==="prog") renderProgress();
   });
 
   const initialWeek = resolveWeekForDate(new Date());
   render(initialWeek ? initialWeek.id : "w2");
-  renderTodo();
+  renderTaskTodo();
+  renderDue();
   renderProgress();
   renderNowStrip();
   setInterval(renderNowStrip, 30000);
