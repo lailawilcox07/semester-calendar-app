@@ -65,7 +65,6 @@
   header.page{margin-bottom:18px;}
   header.page .eyebrow{font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:6px;}
   header.page h1{font-size:clamp(26px,4vw,36px); font-weight:600;}
-  header.page p.sub{color:var(--muted); font-size:14px; margin:8px 0 0; max-width:640px; line-height:1.5;}
 
   /* ---- now strip ---- */
   .nowstrip{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;}
@@ -191,8 +190,6 @@
   .course-bar-fill{height:100%; border-radius:3px; transition:width .2s;}
   .course-items{display:flex; flex-direction:column;}
 
-  footer.note{margin-top:16px; font-size:12.5px; color:var(--muted); line-height:1.6; max-width:760px;}
-
   /* ---- block detail modal ---- */
   .modal-backdrop{
     position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:50;
@@ -239,7 +236,6 @@
   <header class="page">
     <div class="eyebrow">Fall 2026 · BIOL 102 · COGS 100 · MATH 112 · MATH 225 · PHYS 242</div>
     <h1>Semester Calendar</h1>
-    <p class="sub">Your repeating weekly rhythm — classes, walk-to-campus buffers, study blocks, soccer, meals and sleep — with each week's actual deadlines layered on top.</p>
   </header>
 
   <div class="nowstrip" id="nowstrip"></div>
@@ -267,10 +263,6 @@
   <div id="view-prog" hidden>
     <div class="proglist" id="proglist"></div>
   </div>
-
-  <footer class="note">
-    Commute assumption: 20 minutes each way between home and campus, built in once in the morning and once in the evening — gaps between classes are treated as on-campus study time rather than extra round trips. Soccer's own travel time isn't included since it wasn't specified; add a buffer on either side if you need to get there. Dates without a confirmed time yet (remaining MATH 225 quizzes, all final exams) are marked TBC/TBA — fill them in under <span class="mono">examDates</span> near the top of the script once SOLUS posts them. Checkmarks and the current view are saved on this device only.
-  </footer>
 </div>
 
 <div class="modal-backdrop" id="modalBackdrop" hidden>
@@ -349,9 +341,8 @@
       ["21:30","22:30","Wind-down","sleep"],
     ],
     Thu: [
-      ["07:00","07:50","Wake / Breakfast (early)","personal"],
-      ["07:50","08:10","Walk to campus","commute"],
-      ["08:10","08:30","Arrive / settle in","personal"],
+      ["07:20","08:10","Wake / Breakfast (early)","personal"],
+      ["08:10","08:30","Walk to campus","commute"],
       ["08:30","09:30","COGS 100 — Lecture","class"],
       ["09:30","11:30","Study (on campus)","study"],
       ["11:30","12:30","MATH 112 — Lecture","class"],
