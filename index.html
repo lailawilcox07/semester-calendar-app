@@ -1443,10 +1443,15 @@
   }
 
   // ---- block detail modal ----
-  let openBlock = null; // { date, start, end, label } | null
+  let openBlock = null; // { date, start, end, label, tasks } | null
 
   function openBlockModal(date, start, end, label){
-    openBlock = { date, start, end, label };
+    // Snapshot the task list once, on open — scheduleTasks() drops a task the
+    // moment it's checked (correctly, for future scheduling), but re-querying it
+    // on every render made a block's list shrink out from under you mid-session,
+    // so an accidental tap looked like the item vanished with no way to undo.
+    const tasks = date ? (scheduleTasks()[date.toDateString()+"|"+start] || []) : null;
+    openBlock = { date, start, end, label, tasks };
     document.getElementById("modalBackdrop").hidden = false;
     renderBlockModal();
   }
@@ -1456,7 +1461,7 @@
   }
   function renderBlockModal(){
     if(!openBlock) return;
-    const { date, start, end, label } = openBlock;
+    const { date, start, end, label, tasks } = openBlock;
     document.getElementById("modalTitle").textContent = label;
     document.getElementById("modalSub").textContent =
       (date ? date.toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"})+" · " : "") + fmt(start)+"–"+fmt(end);
@@ -1466,8 +1471,6 @@
       body.innerHTML = `<div class="modal-empty">This is the standard-week template, not a specific date — pick a real week above to see what's planned for this block.</div>`;
       return;
     }
-    const blockKey = date.toDateString()+"|"+start;
-    const tasks = scheduleTasks()[blockKey];
     if(!tasks || !tasks.length){
       body.innerHTML = `<div class="modal-empty">Nothing due soon enough to need this block yet — it's flexible time (or, if this is in the past, it's already gone by). Check back closer to your next deadline.</div>`;
       return;
