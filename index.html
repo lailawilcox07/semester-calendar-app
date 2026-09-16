@@ -628,6 +628,50 @@
   }
   const DEADLINES = buildDeadlines();
 
+  // ---- recurring weekly/daily habits ----
+  // Standing per-course rhythms that run every week regardless of what's graded that
+  // week — separate from TASKS above, which is one-time prep tied to a specific
+  // deadline. weekStart is a DAYS index (0=Mon..6=Sun): each course's "week" for habit
+  // purposes resets on that weekday, not necessarily calendar Monday (PHYS 242's runs
+  // Wed-to-Wed). These get scheduled with lower priority than deadline prep, filling
+  // only leftover block capacity, and naturally land near the start of their course's
+  // week since blocks are filled oldest-first.
+  const WEEKLY_HABITS = [
+    { course:"BIOL102", weekStart:0, text:"Watch this week's pre-recorded lecture videos before the matching in-person lecture — the in-person session is built to review/expand on them, not introduce material cold", minutes:30 },
+    { course:"BIOL102", weekStart:0, text:"On lab weeks: start the online pre-lab quiz (opens Mon 12:01am, due Thu 11:59pm, untimed) — budget under 2 hrs, don't leave it to Thursday night", minutes:45 },
+    { course:"BIOL102", weekStart:0, text:"Clear any newly-landed DSM batch now rather than saving it up — untimed, retry-until-correct, meant to be low-stakes", minutes:20 },
+    { course:"PHYS242", weekStart:2, text:"Read the matching section of course notes before each upcoming lecture (15–20 min per lecture, per the syllabus)", minutes:20 },
+    { course:"PHYS242", weekStart:2, text:"After each lecture: turn your notes into 8–12 new Anki cards while it's fresh — writing them yourself is what makes them work", minutes:20 },
+    { course:"PHYS242", weekStart:2, text:"Blank-page re-derive one of this week's key results, notes closed — the single highest-leverage PHYS habit, since exams test derivation/explanation over recall", minutes:40 },
+    { course:"MATH225", weekStart:0, text:"Blank-page derivation practice on this week's main result, timed, then compare line-by-line against the source", minutes:30 },
+    { course:"MATH225", weekStart:0, text:"Any new ungraded assignment: do it closed-book, timed to ~30 min, as quiz rehearsal rather than homework to just complete", minutes:30 },
+    { course:"MATH225", weekStart:0, text:"Update the error log — for anything \"explain/prove/does this contradict\" style, write the full explanation in sentences (Anki can't touch this skill)", minutes:20 },
+    { course:"MATH112", weekStart:0, text:"When new weekly notes post (the only required source — no recordings): read once for the throughline before anything else", minutes:20 },
+    { course:"MATH112", weekStart:0, text:"Add new definitions, theorem statements, and worked-example results to Anki", minutes:15 },
+    { course:"MATH112", weekStart:0, text:"Attempt this week's homework problems cold, in writing, before solutions post — quizzes mirror homework closely, this is the highest-leverage MATH 112 habit", minutes:60 },
+    { course:"MATH112", weekStart:0, text:"Once solutions post: grade yourself honestly, then redo anything wrong from a blank page a few days later", minutes:30 },
+    { course:"MATH112", weekStart:0, text:"Add to the \"proof techniques\" reference page — recurring argument patterns you keep running into", minutes:15 },
+    { course:"COGS100", weekStart:0, text:"Read/watch new slides once, actively, then turn the material into that week's glossary section + Anki cards", minutes:25 },
+    { course:"COGS100", weekStart:0, text:"Import new cards into this week's subdeck; bump new-cards/day briefly to clear them, then back to baseline", minutes:10 },
+    { course:"COGS100", weekStart:0, text:"After a couple of review passes on this week's cards, do a quick explain-it-back check rather than trusting recognition alone", minutes:15 },
+  ];
+  const DAILY_HABITS = [
+    { course:"BIOL102", text:"Anki review — BIOL 102 deck", minutes:12 },
+    { course:"COGS100", text:"Anki review — COGS 100 deck", minutes:12 },
+    { course:"MATH112", text:"Anki review — MATH 112 deck", minutes:12 },
+    { course:"MATH225", text:"Anki review — MATH 225 deck", minutes:12 },
+    { course:"PHYS242", text:"Anki review — PHYS 242 deck", minutes:12 },
+  ];
+  function periodStartFor(date, weekStartIdx){
+    const d = new Date(date);
+    const curIdx = (d.getDay()+6)%7; // 0=Mon..6=Sun
+    let diff = curIdx - weekStartIdx;
+    if(diff<0) diff += 7;
+    d.setDate(d.getDate()-diff);
+    d.setHours(0,0,0,0);
+    return d;
+  }
+
   // ---- study-block task breakdown ----
   // Real, specific prep tasks per deadline id, as given directly (not inferred from
   // lecture content I don't have access to). Anything not listed here falls back to
@@ -860,7 +904,8 @@
       const week = resolveWeekForDate(date) || weeks.find(w=>w.id==="std");
       const dayIdx = (date.getDay()+6)%7;
       const dayName = DAYS[dayIdx];
-      buildDayBlocks(week, dayName).filter(b=>b[3]==="study").forEach(b=>{
+      const dayStudyBlocks = buildDayBlocks(week, dayName).filter(b=>b[3]==="study");
+      dayStudyBlocks.forEach((b,bi)=>{
         const [start,end] = b;
         const [sh,sm] = start.split(":").map(Number);
         const [eh,em] = end.split(":").map(Number);
@@ -870,7 +915,7 @@
         const capacityStart = blockStart < now ? now : blockStart;
         const capacityMin = Math.round((blockEnd-capacityStart)/60000);
         if(capacityMin <= 0) return;
-        blocks.push({ date, start, end, capacityMin, blockKey: date.toDateString()+"|"+start });
+        blocks.push({ date, start, end, capacityMin, blockKey: date.toDateString()+"|"+start, isLastOfDay: bi===dayStudyBlocks.length-1 });
       });
     }
     return blocks;
@@ -890,6 +935,10 @@
   // task content overall — front-loads the whole term into the first few days.
   // Anything past this cap is left as flexible time, not force-filled.
   const SESSION_CAP_MIN = 90;
+  // Habits get their own, smaller pool of leftover capacity per block — kept separate
+  // from SESSION_CAP_MIN so a block that's already full of deadline prep doesn't also
+  // get buried in habit items, but a block with room still gets a realistic amount.
+  const HABIT_CAP_MIN = 45;
   function scheduleTasks(){
     const consumed = new Set(); // taskIds placed already, this computation
     const assignment = {};
@@ -921,10 +970,43 @@
       }
     }
 
+    function fillHabits(block, budget, picked){
+      // daily Anki goes first, and only at the end of the day: it's small, resets if
+      // missed rather than banking up, so it shouldn't lose out to a bulkier weekly item
+      if(block.isLastOfDay){
+        for(const h of DAILY_HABITS){
+          if(budget.v<=0) break;
+          if(h.minutes>budget.v) continue;
+          const id = "habit-d-"+h.course+"-"+block.date.toDateString();
+          if(isDone(id) || consumed.has(id)) continue;
+          picked.push({ taskId:id, text:h.text, minutes:h.minutes, item:{ course:h.course, text:"Daily habit" } });
+          consumed.add(id);
+          budget.v -= h.minutes;
+        }
+      }
+      // weekly habits take whatever's left; eligible as soon as their course's current
+      // period opens, and blocks are visited oldest-first so these naturally land near
+      // period start
+      for(let hi=0; hi<WEEKLY_HABITS.length; hi++){
+        if(budget.v<=0) break;
+        const h = WEEKLY_HABITS[hi];
+        if(h.minutes>budget.v) continue;
+        const periodStart = periodStartFor(block.date, h.weekStart);
+        const id = "habit-w-"+hi+"-"+periodStart.toDateString();
+        if(isDone(id) || consumed.has(id)) continue;
+        picked.push({ taskId:id, text:h.text, minutes:h.minutes, item:{ course:h.course, text:"Weekly habit" } });
+        consumed.add(id);
+        budget.v -= h.minutes;
+      }
+    }
+
     for(const block of blocks){
       const remaining = { v: Math.min(block.capacityMin, SESSION_CAP_MIN) };
       const picked = [];
       fillFrom(byPriority, block, remaining, picked, true);  // only what's actually due-soon-enough to matter here
+      const usedByDeadlines = Math.min(block.capacityMin, SESSION_CAP_MIN) - remaining.v;
+      const habitBudget = { v: Math.min(block.capacityMin-usedByDeadlines, HABIT_CAP_MIN) };
+      fillHabits(block, habitBudget, picked);
       if(picked.length) assignment[block.blockKey] = picked;
     }
     return assignment;
@@ -1297,7 +1379,14 @@
     }
     body.querySelectorAll("input[type=checkbox]").forEach(cb=>{
       cb.addEventListener("change", ()=>{
-        const [itemId, tIdx] = cb.dataset.taskid.split("::t");
+        const taskId = cb.dataset.taskid;
+        if(taskId.indexOf("habit-")===0){
+          setDone(taskId, !isDone(taskId));
+          refreshAll();
+          renderBlockModal();
+          return;
+        }
+        const [itemId, tIdx] = taskId.split("::t");
         const item = DEADLINES.find(d=>d.id===itemId);
         if(item) toggleTask(item, Number(tIdx));
       });
