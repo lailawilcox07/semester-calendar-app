@@ -315,7 +315,7 @@
   const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
   const DAYFULL = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
   const START_MIN = 7*60;      // 7:00am
-  const END_MIN = 22*60+30;    // 10:30pm
+  const END_MIN = 24*60;       // midnight (Sunday's Ultimate game runs to 11:30pm)
   const TOTAL_MIN = END_MIN-START_MIN;
   const PPM = 1.4;             // pixels per minute
   const HOUR_PX = 60*PPM;
@@ -323,6 +323,7 @@
   function toMin(hhmm){ const [h,m]=hhmm.split(":").map(Number); return h*60+m; }
   function fmt(hhmm){
     let [h,m] = hhmm.split(":").map(Number);
+    h = h % 24; // normalize the "24:00" midnight boundary to 0:00
     const ap = h>=12 ? "pm" : "am";
     let h12 = h%12; if(h12===0) h12=12;
     return h12 + (m? ":"+String(m).padStart(2,"0") : "") + ap;
@@ -392,9 +393,11 @@
       ["14:20","15:50","BIOL 102 — Lab / Study block","class","Biosciences Complex 2320"],
       ["15:50","16:20","Study (on campus)","study"],
       ["16:20","17:20","MATH 225 — Tutorial","class","Stirling Hall C"],
-      ["17:20","17:40","Walk home","commute"],
-      ["17:40","18:10","Dinner","meal"],
-      ["18:10","21:30","Study block","study"],
+      ["17:20","17:30","Walk to Volleyball","commute"],
+      ["17:30","19:30","Volleyball (Mixed Recreational)","sport"],
+      ["19:30","19:50","Walk home","commute"],
+      ["19:50","20:20","Dinner","meal"],
+      ["20:20","21:30","Study block","study"],
       ["21:30","22:30","Wind-down","sleep"],
     ],
     Fri: [
@@ -437,8 +440,9 @@
       ["16:00","17:00","Break","break"],
       ["17:00","18:30","Weekly planning","study"],
       ["18:30","19:00","Dinner","meal"],
-      ["19:00","21:30","Protected downtime","downtime"],
-      ["21:30","22:30","Wind-down","sleep"],
+      ["19:00","19:30","Protected downtime","downtime"],
+      ["19:30","23:30","Ultimate (Mixed Intermediate)","sport"],
+      ["23:30","24:00","Wind-down","sleep"],
     ],
   };
 
@@ -1236,7 +1240,7 @@
     timecol.className = "timecol timeline-bg";
     timecol.style.height = (TOTAL_MIN*PPM)+"px";
     for(let m=START_MIN; m<=END_MIN; m+=60){
-      const h = Math.floor(m/60); const ap = h>=12?"pm":"am"; let h12=h%12; if(h12===0)h12=12;
+      const h = Math.floor(m/60)%24; const ap = h>=12?"pm":"am"; let h12=h%12; if(h12===0)h12=12;
       const lbl = document.createElement("div");
       lbl.className = "hourlabel";
       lbl.style.top = ((m-START_MIN)*PPM)+"px";
