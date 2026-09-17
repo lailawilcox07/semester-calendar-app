@@ -161,6 +161,9 @@
   }
   .block .t{display:block; font-size:9px; opacity:.75; font-variant-numeric:tabular-nums;}
   .block .l{display:block; font-weight:600;}
+  .block.compact{display:flex; align-items:center; gap:4px; padding:2px 6px;}
+  .block.compact .l{display:inline; font-size:10.5px; line-height:1.15; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .block.compact .block-check{margin:0; flex:none;}
   .block.class{background:var(--class-tint); color:var(--class); border-color:var(--class);}
   .block.study{background:var(--study-tint); color:var(--study); border-color:var(--study);}
   .block.commute{background:var(--commute-tint); color:var(--commute); border-color:var(--commute);}
@@ -440,9 +443,11 @@
       ["16:00","17:00","Break","break"],
       ["17:00","18:30","Weekly planning","study"],
       ["18:30","19:00","Dinner","meal"],
-      ["19:00","19:30","Protected downtime","downtime"],
+      ["19:00","19:15","Protected downtime","downtime"],
+      ["19:15","19:30","Walk to Ultimate","commute"],
       ["19:30","23:30","Ultimate (Mixed Intermediate)","sport"],
-      ["23:30","24:00","Wind-down","sleep"],
+      ["23:30","23:45","Walk home","commute"],
+      ["23:45","24:00","Wind-down","sleep"],
     ],
   };
 
@@ -479,7 +484,11 @@
         {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 1", weight:10},
         {day:"Thu", match:"MATH 112", cancel:true},
         {day:"Fri", match:"MATH 112", cancel:true},
-      ], crunch:false },
+      ],
+      dayOverrides:[
+        {day:"Thu", start:"19:30", end:"24:00", label:"Going out (until 1am)", cat:"downtime"},
+      ],
+      crunch:false },
 
     { id:"w3", label:"Wk 3 · Sep 21", range:"Sep 21–27", dates:weekDates(2026,8,21),
       note:"BIOL-heavy: <b>Lab 1B</b> in-person, <b>Lecture Quiz 1</b> due Fri, and the first <b>DSM batch (1–7)</b> due Sat. MATH 225 Assignment 2 (ungraded practice) also due Fri.",
@@ -1188,26 +1197,41 @@
   });
   function setActive(id){ [...weekbarEl.children].forEach(b=> b.classList.toggle("active", b.dataset.id===id)); }
 
+  // Splices a one-off {start,end,label,cat} block into a day's block list,
+  // trimming/replacing whatever it overlaps — or, if it falls in a gap with
+  // nothing scheduled there, just inserting it in chronological order.
+  function spliceBlock(blocks, ins){
+    const insStart = toMin(ins.start), insEnd = toMin(ins.end);
+    const newBlocks = []; let inserted=false, overlapped=false;
+    blocks.forEach(b=>{
+      const [s,e,l,c] = b;
+      const sMin=toMin(s), eMin=toMin(e);
+      if(sMin < insEnd && eMin > insStart){
+        overlapped = true;
+        if(sMin < insStart) newBlocks.push([s, ins.start, l, c]);
+        if(!inserted){ newBlocks.push([ins.start, ins.end, ins.label, ins.cat]); inserted=true; }
+        if(eMin > insEnd) newBlocks.push([ins.end, e, l, c]);
+      } else {
+        newBlocks.push(b);
+      }
+    });
+    if(!overlapped){
+      const idx = newBlocks.findIndex(b=> toMin(b[0]) >= insEnd);
+      const entry = [ins.start, ins.end, ins.label, ins.cat];
+      if(idx===-1) newBlocks.push(entry); else newBlocks.splice(idx,0,entry);
+    }
+    return newBlocks;
+  }
+
   function buildDayBlocks(week, day){
     let blocks = (week.noClasses && day!=="Sat" && day!=="Sun") ? noClassDay.map(b=>b.slice()) : base[day].map(b=>b.slice());
 
     if(week.satOverride && day==="Sat"){
-      const so = week.satOverride;
-      const soStart = toMin(so.start), soEnd = toMin(so.end);
-      const newBlocks = []; let inserted=false;
-      blocks.forEach(b=>{
-        const [s,e,l,c] = b;
-        const sMin=toMin(s), eMin=toMin(e);
-        if(sMin < soEnd && eMin > soStart){
-          if(sMin < soStart) newBlocks.push([s, so.start, l, c]);
-          if(!inserted){ newBlocks.push([so.start, so.end, so.label, so.cat]); inserted=true; }
-          if(eMin > soEnd) newBlocks.push([so.end, e, l, c]);
-        } else {
-          newBlocks.push(b);
-        }
-      });
-      blocks = newBlocks;
+      blocks = spliceBlock(blocks, week.satOverride);
     }
+    (week.dayOverrides||[]).filter(d=>d.day===day).forEach(d=>{
+      blocks = spliceBlock(blocks, d);
+    });
 
     (week.overrides||[]).forEach(ov=>{
       if(ov.day!==day) return;
@@ -1294,10 +1318,14 @@
           autoByTime = blockEnd <= now;
         }
         const done = isBlockDone(blockId, autoByTime);
-        div.className = "block " + cat + (flagMark ? " flagged" : "") + (done ? " done" : "");
+        const compact = height < 40; // too short to stack a time line + label legibly
+        div.className = "block " + cat + (flagMark ? " flagged" : "") + (done ? " done" : "") + (compact ? " compact" : "");
         div.style.top = top+"px";
         div.style.height = Math.max(height,16)+"px";
-        div.innerHTML = `<span class="t"><input type="checkbox" class="block-check" ${done?"checked":""} aria-label="Mark done">${fmt(start)}–${fmt(end)}</span><span class="l">${label}${location?' <span class="loc-pin">📍</span>':""}</span>`;
+        div.title = fmt(start)+"–"+fmt(end)+" "+label;
+        div.innerHTML = compact
+          ? `<input type="checkbox" class="block-check" ${done?"checked":""} aria-label="Mark done"><span class="l">${label}${location?' <span class="loc-pin">📍</span>':""}</span>`
+          : `<span class="t"><input type="checkbox" class="block-check" ${done?"checked":""} aria-label="Mark done">${fmt(start)}–${fmt(end)}</span><span class="l">${label}${location?' <span class="loc-pin">📍</span>':""}</span>`;
         div.querySelector(".block-check").addEventListener("click", e=>{
           e.stopPropagation();
           toggleBlockDone(blockId, autoByTime);
