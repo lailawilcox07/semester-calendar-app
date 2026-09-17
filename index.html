@@ -486,7 +486,14 @@
         {day:"Fri", match:"MATH 112", cancel:true},
       ],
       dayOverrides:[
+        // Volleyball/Ultimate don't start until next week — revert this week's
+        // Thu evening and Sun evening back to the pre-sport routine.
+        {day:"Thu", start:"17:20", end:"17:40", label:"Walk home", cat:"commute"},
+        {day:"Thu", start:"17:40", end:"18:10", label:"Dinner", cat:"meal"},
+        {day:"Thu", start:"18:10", end:"19:30", label:"Study block", cat:"study"},
         {day:"Thu", start:"19:30", end:"24:00", label:"Going out (until 1am)", cat:"downtime"},
+        {day:"Sun", start:"19:00", end:"21:30", label:"Protected downtime", cat:"downtime"},
+        {day:"Sun", start:"21:30", end:"24:00", label:"Wind-down", cat:"sleep"},
       ],
       crunch:false },
 
@@ -501,7 +508,15 @@
         ],
         Sat:[{text:"BIOL DSMs 1–7 due", weight:2.67}],
       },
-      overrides:[{day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 1B)", weight:4}], crunch:false },
+      overrides:[{day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 1B)", weight:4}],
+      dayOverrides:[
+        // Mon Sep 21 comes before the first Ultimate game (Sun Sep 27), so the
+        // later wake time that protects sleep after Ultimate isn't needed yet.
+        {day:"Mon", start:"07:00", end:"07:30", label:"Get ready", cat:"break"},
+        {day:"Mon", start:"07:30", end:"08:00", label:"Breakfast", cat:"meal"},
+        {day:"Mon", start:"08:00", end:"12:30", label:"Study block", cat:"study"},
+      ],
+      crunch:false },
 
     { id:"w4", label:"Wk 4 · Sep 28", range:"Sep 28–Oct 4", dates:weekDates(2026,8,28),
       note:"<b>MATH 112 Quiz 1</b> in class Thursday — shift extra review into Tue/Thu MATH 112 blocks. BIOL Pre-Lab Quiz #2 and the whole \"Stuff You Should Know\" bundle (Scavenger Hunt, Academics 101, Biosafety) are also due Thu — Biosafety needs ≥50% to unlock Labs 2B/2C.",
