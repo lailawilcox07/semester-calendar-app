@@ -33,3 +33,13 @@ self.addEventListener("fetch", e=>{
     })
   );
 });
+
+self.addEventListener("push", e=>{
+  const data = e.data ? e.data.json() : {};
+  e.waitUntil(self.registration.showNotification(data.title || "Semester Calendar", { body: data.body || "", tag: data.tag }));
+});
+
+self.addEventListener("notificationclick", e=>{
+  e.notification.close();
+  e.waitUntil(clients.openWindow("/"));
+});
