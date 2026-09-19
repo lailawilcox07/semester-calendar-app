@@ -13,6 +13,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const engine = require(path.join(__dirname, "..", "engine.js"));
 
 const DRY_RUN = process.argv.includes("--dry-run");
+const TEST = process.argv.includes("--test");
 const LOG_PATH = path.join(__dirname, "sent-log.json");
 const TIMEZONE = "America/Toronto";
 
@@ -58,6 +59,12 @@ async function sendPush(title, body, tag){
 }
 
 async function main(){
+  if(TEST){
+    const ok = await sendPush("Test notification", "If you see this, real push delivery works.", "test");
+    console.log(ok ? "test push sent" : "test push skipped (no subscription)");
+    return;
+  }
+
   const now = nowInToronto();
   const todayStart = new Date(now); todayStart.setHours(0,0,0,0);
   const log = loadLog();
