@@ -41,7 +41,11 @@ function saveLog(log){
 async function sendPush(title, body, tag){
   if(DRY_RUN){
     console.log("[dry-run] would send:", title, "—", body);
-    return;
+    return true;
+  }
+  if(!process.env.PUSH_SUBSCRIPTION){
+    console.log("[skip] PUSH_SUBSCRIPTION not set yet — nothing to send to:", title, "—", body);
+    return false;
   }
   const subscription = JSON.parse(process.env.PUSH_SUBSCRIPTION);
   webpush.setVapidDetails(
@@ -50,6 +54,7 @@ async function sendPush(title, body, tag){
     process.env.VAPID_PRIVATE_KEY
   );
   await webpush.sendNotification(subscription, JSON.stringify({ title, body, tag }));
+  return true;
 }
 
 async function main(){
@@ -94,7 +99,8 @@ async function main(){
   }
 
   for(const n of toSend){
-    await sendPush(n.title, n.body, n.id);
+    const ok = await sendPush(n.title, n.body, n.id);
+    if(!ok) continue; // not actually sent (e.g. no subscription yet) — leave unlogged so it fires once one exists
     log[n.id] = new Date().toISOString();
     console.log("sent:", n.title, "-", n.body);
   }
