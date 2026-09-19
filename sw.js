@@ -1,4 +1,4 @@
-const CACHE = "semcal-v1";
+const CACHE = "semcal-v2";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e=>{
@@ -13,13 +13,27 @@ self.addEventListener("activate", e=>{
   self.clients.claim();
 });
 
-// Cache-first for the app shell, falling back to network and updating the
-// cache in the background. Anything (Google Fonts included) that's never
-// been fetched successfully simply isn't available offline yet.
 self.addEventListener("fetch", e=>{
   const req = e.request;
   if(req.method !== "GET") return;
 
+  // Navigations (the HTML shell) go network-first: a stale cached page would
+  // otherwise keep showing up-to-date-looking but actually-stale UI/code for
+  // as long as this service worker instance keeps winning cache races.
+  if(req.mode === "navigate"){
+    e.respondWith(
+      fetch(req).then(res=>{
+        const copy = res.clone();
+        caches.open(CACHE).then(c=>c.put(req, copy));
+        return res;
+      }).catch(()=> caches.match(req))
+    );
+    return;
+  }
+
+  // Everything else (icons, manifest, fonts): cache-first, updating the
+  // cache in the background. Anything never fetched successfully simply
+  // isn't available offline yet.
   e.respondWith(
     caches.match(req).then(cached=>{
       const network = fetch(req).then(res=>{
