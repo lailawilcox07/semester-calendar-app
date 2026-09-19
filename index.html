@@ -653,7 +653,10 @@
     const el = document.getElementById("duelist");
     if(!DEADLINES.length){ el.innerHTML = `<div class="todo-empty">Nothing on the list.</div>`; return; }
 
-    const undone = DEADLINES.filter(i=>!isDone(i.id)).sort((a,b)=> priorityScore(b)-priorityScore(a));
+    const undone = DEADLINES.filter(i=>!isDone(i.id)).sort((a,b)=>{
+      const da = resolveDeadlineDate(a), db = resolveDeadlineDate(b);
+      return (da?da.getTime():Infinity) - (db?db.getTime():Infinity);
+    });
     const done = DEADLINES.filter(i=>isDone(i.id)).sort((a,b)=>{
       const da = resolveDeadlineDate(a), db = resolveDeadlineDate(b);
       return (da?da.getTime():Infinity) - (db?db.getTime():Infinity);

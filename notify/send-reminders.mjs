@@ -39,23 +39,30 @@ function saveLog(log){
   writeFileSync(LOG_PATH, JSON.stringify(log, null, 2)+"\n");
 }
 
+// PUSH_SUBSCRIPTIONS is a JSON array (one entry per subscribed device/browser).
 async function sendPush(title, body, tag){
   if(DRY_RUN){
     console.log("[dry-run] would send:", title, "—", body);
     return true;
   }
-  if(!process.env.PUSH_SUBSCRIPTION){
-    console.log("[skip] PUSH_SUBSCRIPTION not set yet — nothing to send to:", title, "—", body);
+  if(!process.env.PUSH_SUBSCRIPTIONS){
+    console.log("[skip] PUSH_SUBSCRIPTIONS not set yet — nothing to send to:", title, "—", body);
     return false;
   }
-  const subscription = JSON.parse(process.env.PUSH_SUBSCRIPTION);
+  const subscriptions = JSON.parse(process.env.PUSH_SUBSCRIPTIONS);
   webpush.setVapidDetails(
     "mailto:none@example.com",
     process.env.VAPID_PUBLIC_KEY,
     process.env.VAPID_PRIVATE_KEY
   );
-  await webpush.sendNotification(subscription, JSON.stringify({ title, body, tag }));
-  return true;
+  const payload = JSON.stringify({ title, body, tag });
+  const results = await Promise.allSettled(
+    subscriptions.map(sub => webpush.sendNotification(sub, payload))
+  );
+  results.forEach((r,i)=>{
+    if(r.status==="rejected") console.log("[warn] push failed for subscription", i, "-", r.reason && r.reason.message);
+  });
+  return results.some(r=> r.status==="fulfilled"); // delivered to at least one device
 }
 
 async function main(){
