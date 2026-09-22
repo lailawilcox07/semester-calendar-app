@@ -170,7 +170,6 @@
     { id:"w3", label:"Wk 3 · Sep 21", range:"Sep 21–27", dates:weekDates(2026,8,21),
       note:"BIOL-heavy: <b>Lab 1B</b> in-person, <b>Lecture Quiz 1</b> due Fri, and the first <b>DSM batch (1–7)</b> due Sat. MATH 225 Assignment 2 (ungraded practice) also due Fri.",
       due:{
-        Mon:[{text:"PHYS 242 Problem Set 1 due", weight:2}],
         Thu:[{text:"BIOL Lab 1B (in-person)", weight:4}],
         Fri:[
           {text:"BIOL Lecture Quiz 1 due", weight:5},
@@ -191,7 +190,10 @@
     { id:"w4", label:"Wk 4 · Sep 28", range:"Sep 28–Oct 4", dates:weekDates(2026,8,28),
       note:"<b>MATH 112 Quiz 1</b> in class Thursday — shift extra review into Tue/Thu MATH 112 blocks. BIOL Pre-Lab Quiz #2 and the whole \"Stuff You Should Know\" bundle (Scavenger Hunt, Academics 101, Biosafety) are also due Thu — Biosafety needs ≥50% to unlock Labs 2B/2C.",
       due:{
-        Mon:[{text:"PHYS 242 Problem Set 2 due", weight:2}],
+        Mon:[
+          {text:"PHYS 242 Problem Set 2 due", weight:2},
+          {text:"PHYS 242 Problem Set 1 due", weight:2},
+        ],
         Thu:[
           {text:"MATH 112 Quiz 1 (in class)", weight:15},
           {text:"BIOL Pre-Lab Quiz #2 due (Lab 2A)", weight:2},
@@ -386,6 +388,7 @@
     ],
     "due-w3-Mon-0": PHYS_PS_TASKS,
     "due-w4-Mon-0": PHYS_PS_TASKS,
+    "due-w4-Mon-1": PHYS_PS_TASKS,
     "due-w5-Mon-0": PHYS_PS_TASKS,
     "due-w6-Mon-0": PHYS_PS_TASKS,
     "due-w8-Mon-0": PHYS_PS_TASKS,
