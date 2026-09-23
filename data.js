@@ -192,8 +192,8 @@
         {day:"Sun", start:"19:30", end:"20:12", label:"Ultimate (Mixed Intermediate)", cat:"sport"},
         {day:"Sun", start:"20:12", end:"20:30", label:"Social time (post-game)", cat:"downtime"},
         {day:"Sun", start:"20:30", end:"20:45", label:"Walk home", cat:"commute"},
-        {day:"Sun", start:"20:45", end:"22:30", label:"Protected downtime", cat:"downtime"},
-        {day:"Sun", start:"22:30", end:"24:00", label:"Wind-down", cat:"sleep"},
+        {day:"Sun", start:"20:45", end:"21:30", label:"Protected downtime", cat:"downtime"},
+        {day:"Sun", start:"21:30", end:"24:00", label:"Wind-down", cat:"sleep"},
       ],
       crunch:false },
 
