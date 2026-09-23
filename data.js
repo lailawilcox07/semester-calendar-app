@@ -186,6 +186,14 @@
         {day:"Mon", start:"07:00", end:"07:30", label:"Get ready", cat:"break"},
         {day:"Mon", start:"07:30", end:"08:00", label:"Breakfast", cat:"meal"},
         {day:"Mon", start:"08:00", end:"12:30", label:"Study block", cat:"study"},
+        // This week's actual Ultimate game: 7:30pm kickoff, 2x20min halves +
+        // 2min halftime (42 min) + ~18 min social after, replacing the
+        // placeholder block. Game time shifts week to week — update per-week.
+        {day:"Sun", start:"19:30", end:"20:12", label:"Ultimate (Mixed Intermediate)", cat:"sport"},
+        {day:"Sun", start:"20:12", end:"20:30", label:"Social time (post-game)", cat:"downtime"},
+        {day:"Sun", start:"20:30", end:"20:45", label:"Walk home", cat:"commute"},
+        {day:"Sun", start:"20:45", end:"22:30", label:"Protected downtime", cat:"downtime"},
+        {day:"Sun", start:"22:30", end:"24:00", label:"Wind-down", cat:"sleep"},
       ],
       crunch:false },
 
