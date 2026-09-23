@@ -167,7 +167,7 @@
       crunch:false },
 
     { id:"w3", label:"Wk 3 · Sep 21", range:"Sep 21–27", dates:weekDates(2026,8,21),
-      note:"BIOL-heavy: <b>Lab 1B</b> in-person, <b>Lecture Quiz 1</b> due Fri, and the first <b>DSM batch (1–7)</b> due Sat. MATH 225 Assignment 2 (ungraded practice) also due Fri.",
+      note:"BIOL-heavy: <b>Lab 1B</b> in-person, <b>Lecture Quiz 1</b> due Fri, and the first <b>DSM batch (1–7)</b> due Sat. MATH 225 Assignment 2 (ungraded practice) also due Fri. MATH 225 Tutorial is cancelled this week.",
       due:{
         Thu:[{text:"BIOL Lab 1B (in-person)", weight:4}],
         Fri:[
@@ -176,7 +176,10 @@
         ],
         Sat:[{text:"BIOL DSMs 1–7 due", weight:2.67}],
       },
-      overrides:[{day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 1B)", weight:4}],
+      overrides:[
+        {day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 1B)", weight:4},
+        {day:"Thu", match:"MATH 225 — Tutorial", cancel:true},
+      ],
       dayOverrides:[
         // Mon Sep 21 comes before the first Ultimate game (Sun Sep 27), so the
         // later wake time that protects sleep after Ultimate isn't needed yet.
