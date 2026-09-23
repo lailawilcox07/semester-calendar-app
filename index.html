@@ -34,6 +34,7 @@
     --downtime:#A85B6E;
     --downtime-tint:#F2E3E6;
     --flag:#B23A48;
+    --flag-tint:#F6E0E1;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
@@ -48,6 +49,7 @@
       --therapy:#E599C4; --therapy-tint:#3A2530;
       --downtime:#D99BAC; --downtime-tint:#3A262B;
       --flag:#F0798A;
+      --flag-tint:#3D2224;
     }
   }
   :root[data-theme="dark"]{
@@ -62,6 +64,7 @@
     --therapy:#E599C4; --therapy-tint:#3A2530;
     --downtime:#D99BAC; --downtime-tint:#3A262B;
     --flag:#F0798A;
+    --flag-tint:#3D2224;
   }
 
   *{box-sizing:border-box;}
@@ -213,6 +216,8 @@
   .todo-row.small input[type=checkbox]{width:15px; height:15px;}
   .todo-course{font-size:11px; font-weight:700; letter-spacing:.02em; flex:none; min-width:62px;}
   .todo-text{flex:1;}
+  .todo-text[data-id]{cursor:pointer;}
+  .todo-text[data-id]:hover{text-decoration:underline; text-decoration-style:dotted;}
   .todo-date{font-size:11.5px; color:var(--muted); flex:none; white-space:nowrap;}
   .todo-weight{font-size:11px; color:var(--muted); flex:none; white-space:nowrap; opacity:.85;}
   .todo-weight.ungraded{font-style:italic;}
@@ -222,6 +227,10 @@
   .todo-row.done{opacity:.5;}
   .todo-row.done .todo-text{text-decoration:line-through;}
   .todo-row.overdue .todo-date{color:var(--flag); font-weight:600;}
+
+  .todo-row.started .todo-text::before{content:"In progress — "; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--study); opacity:.85;}
+  .todo-row.urgent{background:var(--flag-tint); border:2px solid var(--flag);}
+  .todo-row.urgent .todo-date{color:var(--flag); font-weight:700;}
   .todo-empty{color:var(--muted); font-size:13.5px; padding:20px 4px;}
   .todo-divider{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:700; margin:16px 4px 8px;}
 
@@ -481,6 +490,17 @@
   }
   function toggleDone(id){ setDone(id, !isDone(id)); refreshAll(); }
 
+  // ---- started/in-progress state store (Due tab only, localStorage) ----
+  const STARTED_KEY = "semcal-started-v1";
+  function loadStarted(){ try{ return JSON.parse(localStorage.getItem(STARTED_KEY)||"{}"); }catch(e){ return {}; } }
+  let startedState = loadStarted();
+  function isStarted(id){ return !!startedState[id]; }
+  function setStarted(id,val){
+    if(val) startedState[id]=true; else delete startedState[id];
+    try{ localStorage.setItem(STARTED_KEY, JSON.stringify(startedState)); }catch(e){}
+  }
+  function toggleStarted(id){ setStarted(id, !isStarted(id)); renderDue(); }
+
   // Calendar blocks: past ones are checked by default (the time already happened),
   // but that's just a default — an explicit check or uncheck always wins over it.
   function isBlockDone(blockId, autoByTime){
@@ -640,10 +660,14 @@
     const color = "var(--"+(COURSE_COLOR[item.course]||"class")+")";
     const ungraded = item.graded===false;
     const weightStr = ungraded ? "Ungraded" : (item.weight ? (Math.round(item.weight*10)/10)+"%" : "");
-    return `<label class="todo-row${small?" small":""}${done?" done":""}${overdue?" overdue":""}${ungraded?" ungraded":""}">
+    // started/urgent tracking is Due-tab only (small=true rows are the Progress tab)
+    const started = !small && isStarted(item.id);
+    const daysUntil = date ? Math.round((date-today)/86400000) : null;
+    const urgent = !small && !done && daysUntil!==null && (daysUntil<=0 || (daysUntil<=3 && !started));
+    return `<label class="todo-row${small?" small":""}${done?" done":""}${overdue?" overdue":""}${ungraded?" ungraded":""}${started?" started":""}${urgent?" urgent":""}">
       <input type="checkbox" data-id="${item.id}" ${done?"checked":""} style="accent-color:${color}">
       ${small?"":`<span class="todo-course" style="color:${color}">${COURSE_NAMES[item.course]||item.course}</span>`}
-      <span class="todo-text">${item.text}</span>
+      <span class="todo-text"${small?"":` data-id="${item.id}"`}>${item.text}</span>
       ${weightStr && !small ? `<span class="todo-weight mono${ungraded?" ungraded":""}">${weightStr}</span>` : ""}
       <span class="todo-date mono">${dateStr}</span>
     </label>`;
@@ -669,6 +693,16 @@
     el.innerHTML = html;
     el.querySelectorAll("input[type=checkbox]").forEach(cb=>{
       cb.addEventListener("change", ()=> toggleDone(cb.dataset.id));
+    });
+    // Tapping the text (not the checkbox) toggles started/in-progress instead
+    // of marking done — prevent the label's default click-through to the
+    // checkbox so the two controls stay independent.
+    el.querySelectorAll(".todo-text[data-id]").forEach(span=>{
+      span.addEventListener("click", e=>{
+        e.preventDefault();
+        e.stopPropagation();
+        toggleStarted(span.dataset.id);
+      });
     });
   }
 
