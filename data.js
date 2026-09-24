@@ -147,7 +147,10 @@
       note:"<b>MATH 225 Quiz 1</b> lands this week, in your Thursday tutorial (section 004). BIOL Pre-Lab Quiz #1 is due the same day — check it isn't still unstarted. MATH 225 Assignment 1 (ungraded practice) due Fri. No MATH 112 lecture Thu or Fri this week — that time's freed up for study.",
       due:{
         Thu:[{text:"BIOL Pre-Lab Quiz #1 due (Lab 1A)", weight:2}],
-        Fri:[{text:"MATH 225 Assignment 1 due (ungraded practice)", weight:5, graded:false}],
+        Fri:[
+          {text:"MATH 225 Assignment 1 due (ungraded practice)", weight:5, graded:false},
+          {text:"MATH 112 Homework 1 due (ungraded)", weight:5, graded:false},
+        ],
       },
       overrides:[
         {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 1", weight:10},
@@ -173,6 +176,7 @@
         Fri:[
           {text:"BIOL Lecture Quiz 1 due", weight:5},
           {text:"MATH 225 Assignment 2 due (ungraded practice)", weight:5, graded:false},
+          {text:"MATH 112 Homework 2 due (ungraded)", weight:5, graded:false},
         ],
         Sat:[{text:"BIOL DSMs 1–7 due", weight:2.67}],
       },
@@ -217,6 +221,10 @@
           {text:"BIOL Academics 101 due", weight:1},
           {text:"BIOL Biosafety Quiz due (need ≥50% to unlock Labs 2B/2C)", weight:1},
         ],
+        Fri:[
+          {text:"MATH 225 Assignment 3 due (ungraded practice)", weight:5, graded:false},
+          {text:"MATH 112 Homework 3 due (ungraded)", weight:5, graded:false},
+        ],
       },
       overrides:[{day:"Thu", match:"MATH 112", flag:true, append:" — Quiz 1", weight:15}], crunch:false },
 
@@ -225,6 +233,10 @@
       due:{
         Mon:[{text:"PHYS 242 Problem Set 3 due", weight:2}],
         Thu:[{text:"BIOL Lab 2B (in-person)", weight:4}],
+        Fri:[
+          {text:"MATH 225 Assignment 4 due (ungraded practice)", weight:5, graded:false},
+          {text:"MATH 112 Homework 4 due (ungraded)", weight:5, graded:false},
+        ],
         Sat:[{text:"BIOL DSMs 8–11 due", weight:1.52}],
       },
       overrides:[
@@ -240,7 +252,11 @@
       note:"<b>Worst single day of the term: three quizzes land Thu Oct 22</b> — MATH 225 Quiz 3, MATH 112 Quiz 2, and COGS 100 Quiz 1, all the same day. Plus BIOL Lecture Quiz 2 due Fri and BIOL Lab 2C in-person. Build slack into the weekend before, not the days of.",
       due:{
         Mon:[{text:"PHYS 242 Problem Set 4 due", weight:2}],
-        Fri:[{text:"BIOL Lecture Quiz 2 due", weight:5}],
+        Fri:[
+          {text:"BIOL Lecture Quiz 2 due", weight:5},
+          {text:"MATH 225 Assignment 5 due (ungraded practice)", weight:5, graded:false},
+          {text:"MATH 112 Homework 5 due (ungraded)", weight:5, graded:false},
+        ],
       },
       overrides:[
         {day:"Thu", match:"COGS 100", flag:true, append:" — Quiz 1", weight:20},
@@ -254,6 +270,10 @@
       due:{
         Sat:[{text:"BIOL DSMs 12,13,21 due", weight:1.14}],
         Thu:[{text:"BIOL Pre-Lab Quiz #3 due (Lab 3A)", weight:2}],
+        Fri:[
+          {text:"MATH 225 Assignment 6 due (ungraded practice)", weight:5, graded:false},
+          {text:"MATH 112 Homework 6 due (ungraded)", weight:5, graded:false},
+        ],
       },
       overrides:[
         {day:"Wed", match:"PHYS 242 — Lecture", exam:true, newLabel:"PHYS 242 — MIDTERM (Part 1)", weight:20},
@@ -265,7 +285,11 @@
       due:{
         Mon:[{text:"PHYS 242 Problem Set 5 due", weight:2}],
         Sat:[{text:"BIOL 102 MIDTERM · 11am–1pm", weight:20}],
-        Fri:[{text:"COGS 100 Memory Test due (window open since Oct 26)", weight:5}],
+        Fri:[
+          {text:"COGS 100 Memory Test due (window open since Oct 26)", weight:5},
+          {text:"MATH 225 Assignment 7 due (ungraded practice)", weight:5, graded:false},
+          {text:"MATH 112 Homework 7 due (ungraded)", weight:5, graded:false},
+        ],
       },
       overrides:[
         {day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 3B)", weight:4},
@@ -278,7 +302,11 @@
       note:"PHYS Quiz 2 (Wed tutorial) and BIOL Lecture Quiz 3 (due Fri) both fall this week — split flex time between them early.",
       due:{
         Mon:[{text:"PHYS 242 Problem Set 6 due", weight:2}],
-        Fri:[{text:"BIOL Lecture Quiz 3 due", weight:5}],
+        Fri:[
+          {text:"BIOL Lecture Quiz 3 due", weight:5},
+          {text:"MATH 225 Assignment 8 due (ungraded practice)", weight:5, graded:false},
+          {text:"MATH 112 Homework 8 due (ungraded)", weight:5, graded:false},
+        ],
         Sat:[{text:"BIOL DSMs 16–17 due", weight:0.76}],
       },
       overrides:[{day:"Wed", match:"PHYS 242 — Tutorial", flag:true, append:" — Quiz 2", weight:4}], crunch:false },
@@ -288,6 +316,10 @@
       due:{
         Mon:[{text:"PHYS 242 Problem Set 7 due", weight:2}],
         Thu:[{text:"BIOL Pre-Lab Quiz #4 due (Lab 4A)", weight:2}],
+        Fri:[
+          {text:"MATH 225 Assignment 9 due (ungraded practice)", weight:5, graded:false},
+          {text:"MATH 112 Homework 9 due (ungraded)", weight:5, graded:false},
+        ],
       },
       overrides:[
         {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 5", weight:10},
@@ -300,6 +332,8 @@
         Fri:[
           {text:"COGS 100 tutorial (time TBC)", weight:0},
           {text:"COGS 100 Finite State Machine and Logical Models due (same day, no separate window)", weight:5},
+          {text:"MATH 225 Assignment 10 due (ungraded practice)", weight:5, graded:false},
+          {text:"MATH 112 Homework 10 due (ungraded)", weight:5, graded:false},
         ],
         Sat:[{text:"BIOL DSMs 18,20 due", weight:0.76}],
       },
@@ -314,7 +348,11 @@
       note:"MATH 225 Quiz 6 (Dec 3, the last one — best 4 of 6 count) lands right before BIOL closes out its term work: Lecture Quiz 4 (Fri) and the final DSM batch (Sat). Final exam dates should be posted on SOLUS by now — once confirmed, come back and block review time in the Sunday planning slot.",
       due:{
         Mon:[{text:"PHYS 242 Problem Set 9 due", weight:2}],
-        Fri:[{text:"BIOL Lecture Quiz 4 due", weight:5}],
+        Fri:[
+          {text:"BIOL Lecture Quiz 4 due", weight:5},
+          {text:"MATH 225 Assignment 11 due (ungraded practice)", weight:5, graded:false},
+          {text:"MATH 112 Homework 11 due (ungraded)", weight:5, graded:false},
+        ],
         Sat:[{text:"BIOL DSMs 19,14,15 due", weight:2.67}],
       },
       overrides:[
