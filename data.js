@@ -186,6 +186,12 @@
         {day:"Mon", start:"07:00", end:"07:30", label:"Get ready", cat:"break"},
         {day:"Mon", start:"07:30", end:"08:00", label:"Breakfast", cat:"meal"},
         {day:"Mon", start:"08:00", end:"12:30", label:"Study block", cat:"study"},
+        // Volleyball's first game isn't until Oct 1 (week 4) — revert this
+        // week's Thursday evening back to the pre-sport routine.
+        {day:"Thu", start:"17:20", end:"17:40", label:"Walk home", cat:"commute"},
+        {day:"Thu", start:"17:40", end:"18:10", label:"Dinner", cat:"meal"},
+        {day:"Thu", start:"18:10", end:"21:30", label:"Study block", cat:"study"},
+        {day:"Thu", start:"21:30", end:"22:30", label:"Wind-down", cat:"sleep"},
         // This week's actual Ultimate game: 7:30pm kickoff, 2x20min halves +
         // 2min halftime (42 min) + ~18 min social after, replacing the
         // placeholder block. Game time shifts week to week — update per-week.
