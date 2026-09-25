@@ -121,9 +121,10 @@
       ["18:30","19:00","Dinner","meal"],
       ["19:00","19:15","Protected downtime","downtime"],
       ["19:15","19:30","Walk to Ultimate","commute"],
-      ["19:30","23:30","Ultimate (Mixed Intermediate)","sport"],
-      ["23:30","23:45","Walk home","commute"],
-      ["23:45","24:00","Wind-down","sleep"],
+      ["19:30","20:30","Ultimate (Mixed Intermediate)","sport"],
+      ["20:30","20:45","Walk home","commute"],
+      ["20:45","21:30","Protected downtime","downtime"],
+      ["21:30","22:30","Wind-down","sleep"],
     ],
   };
 
@@ -203,7 +204,7 @@
         {day:"Sun", start:"20:12", end:"20:30", label:"Social time (post-game)", cat:"downtime"},
         {day:"Sun", start:"20:30", end:"20:45", label:"Walk home", cat:"commute"},
         {day:"Sun", start:"20:45", end:"21:30", label:"Protected downtime", cat:"downtime"},
-        {day:"Sun", start:"21:30", end:"24:00", label:"Wind-down", cat:"sleep"},
+        {day:"Sun", start:"21:30", end:"22:30", label:"Wind-down", cat:"sleep"},
       ],
       crunch:false },
 
