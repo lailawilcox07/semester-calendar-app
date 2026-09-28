@@ -212,7 +212,6 @@
       note:"<b>MATH 112 Quiz 1</b> in class Thursday — shift extra review into Tue/Thu MATH 112 blocks. BIOL Pre-Lab Quiz #2 and the whole \"Stuff You Should Know\" bundle (Scavenger Hunt, Academics 101, Biosafety) are also due Thu — Biosafety needs ≥50% to unlock Labs 2B/2C.",
       due:{
         Mon:[
-          {text:"PHYS 242 Problem Set 2 due", weight:2},
           {text:"PHYS 242 Problem Set 1 due", weight:2},
         ],
         Thu:[
@@ -223,6 +222,7 @@
           {text:"BIOL Biosafety Quiz due (need ≥50% to unlock Labs 2B/2C)", weight:1},
         ],
         Fri:[
+          {text:"PHYS 242 Problem Set 2 due", weight:2},
           {text:"MATH 225 Assignment 3 due (ungraded practice)", weight:5, graded:false},
           {text:"MATH 112 Homework 3 due (ungraded)", weight:5, graded:false},
         ],
@@ -443,7 +443,7 @@
     ],
     "due-w3-Mon-0": PHYS_PS_TASKS,
     "due-w4-Mon-0": PHYS_PS_TASKS,
-    "due-w4-Mon-1": PHYS_PS_TASKS,
+    "due-w4-Fri-0": PHYS_PS_TASKS,
     "due-w5-Mon-0": PHYS_PS_TASKS,
     "due-w6-Mon-0": PHYS_PS_TASKS,
     "due-w8-Mon-0": PHYS_PS_TASKS,
