@@ -206,6 +206,11 @@
   .block.done .l{text-decoration:line-through;}
 
   /* ---- todo / progress ---- */
+  .ungraded-toggle{
+    display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--muted);
+    margin-bottom:12px; cursor:pointer; user-select:none;
+  }
+  .ungraded-toggle input{width:15px; height:15px; cursor:pointer;}
   .todolist{display:flex; flex-direction:column;}
   .todo-row{
     display:flex; align-items:center; gap:10px; padding:11px 14px; background:var(--surface);
@@ -330,6 +335,10 @@
   </div>
 
   <div id="view-due" hidden>
+    <label class="ungraded-toggle">
+      <input type="checkbox" id="showUngraded">
+      Show ungraded work
+    </label>
     <div class="todolist" id="duelist"></div>
   </div>
 
@@ -673,15 +682,27 @@
     </label>`;
   }
 
+  // ---- Due tab: show/hide ungraded work (localStorage) ----
+  const SHOW_UNGRADED_KEY = "semcal-show-ungraded-v1";
+  function loadShowUngraded(){
+    const raw = localStorage.getItem(SHOW_UNGRADED_KEY);
+    return raw===null ? true : raw==="1"; // default: show everything, matching prior behavior
+  }
+  let showUngraded = loadShowUngraded();
+
   function renderDue(){
     const el = document.getElementById("duelist");
-    if(!DEADLINES.length){ el.innerHTML = `<div class="todo-empty">Nothing on the list.</div>`; return; }
+    const toggle = document.getElementById("showUngraded");
+    if(toggle) toggle.checked = showUngraded;
 
-    const undone = DEADLINES.filter(i=>!isDone(i.id)).sort((a,b)=>{
+    const visible = showUngraded ? DEADLINES : DEADLINES.filter(i=> i.graded!==false);
+    if(!visible.length){ el.innerHTML = `<div class="todo-empty">Nothing on the list.</div>`; return; }
+
+    const undone = visible.filter(i=>!isDone(i.id)).sort((a,b)=>{
       const da = resolveDeadlineDate(a), db = resolveDeadlineDate(b);
       return (da?da.getTime():Infinity) - (db?db.getTime():Infinity);
     });
-    const done = DEADLINES.filter(i=>isDone(i.id)).sort((a,b)=>{
+    const done = visible.filter(i=>isDone(i.id)).sort((a,b)=>{
       const da = resolveDeadlineDate(a), db = resolveDeadlineDate(b);
       return (da?da.getTime():Infinity) - (db?db.getTime():Infinity);
     });
@@ -990,6 +1011,12 @@
     if(tab==="todo") renderTaskTodo();
     if(tab==="due") renderDue();
     if(tab==="prog") renderProgress();
+  });
+
+  document.getElementById("showUngraded").addEventListener("change", e=>{
+    showUngraded = e.target.checked;
+    try{ localStorage.setItem(SHOW_UNGRADED_KEY, showUngraded ? "1" : "0"); }catch(err){}
+    renderDue();
   });
 
   const initialWeek = resolveWeekForDate(new Date());
