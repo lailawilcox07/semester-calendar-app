@@ -209,7 +209,7 @@
       crunch:false },
 
     { id:"w4", label:"Wk 4 · Sep 28", range:"Sep 28–Oct 4", dates:weekDates(2026,8,28),
-      note:"<b>MATH 112 Quiz 1</b> in class Thursday — shift extra review into Tue/Thu MATH 112 blocks. BIOL Pre-Lab Quiz #2 and the whole \"Stuff You Should Know\" bundle (Scavenger Hunt, Academics 101, Biosafety) are also due Thu — Biosafety needs ≥50% to unlock Labs 2B/2C.",
+      note:"No classes Wednesday this week — that time's freed up for study. <b>MATH 112 Quiz 1</b> in class Thursday — shift extra review into Tue/Thu MATH 112 blocks. BIOL Pre-Lab Quiz #2 and the whole \"Stuff You Should Know\" bundle (Scavenger Hunt, Academics 101, Biosafety) are also due Thu — Biosafety needs ≥50% to unlock Labs 2B/2C.",
       due:{
         Mon:[
           {text:"PHYS 242 Problem Set 1 due", weight:2},
@@ -227,7 +227,13 @@
           {text:"MATH 112 Homework 3 due (ungraded)", weight:5, graded:false},
         ],
       },
-      overrides:[{day:"Thu", match:"MATH 112", flag:true, append:" — Quiz 1", weight:15}], crunch:false },
+      overrides:[
+        {day:"Thu", match:"MATH 112", flag:true, append:" — Quiz 1", weight:15},
+        {day:"Wed", match:"PHYS 242 — Lecture", cancel:true},
+        {day:"Wed", match:"MATH 225 — Lecture", cancel:true},
+        {day:"Wed", match:"PHYS 242 — Tutorial", cancel:true},
+        {day:"Wed", match:"BIOL 102 — Lecture", cancel:true},
+      ], crunch:false },
 
     { id:"w5", label:"Wk 5 · Oct 5", range:"Oct 5–11", dates:weekDates(2026,9,5),
       note:"<b>MATH 225 Quiz 2</b> (Oct 8) and <b>PHYS Quiz 1</b> (Oct 7) both land this week, plus BIOL Lab 2B in-person.",
