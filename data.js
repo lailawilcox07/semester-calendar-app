@@ -157,6 +157,7 @@
         {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 1", weight:10},
         {day:"Thu", match:"MATH 112", cancel:true},
         {day:"Fri", match:"MATH 112", cancel:true},
+        {day:"Thu", match:"BIOL 102 — Lab", cancel:true},
       ],
       dayOverrides:[
         // Volleyball/Ultimate don't start until next week — revert this week's
@@ -233,6 +234,7 @@
         {day:"Wed", match:"MATH 225 — Lecture", cancel:true},
         {day:"Wed", match:"PHYS 242 — Tutorial", cancel:true},
         {day:"Wed", match:"BIOL 102 — Lecture", cancel:true},
+        {day:"Thu", match:"BIOL 102 — Lab", cancel:true},
       ], crunch:false },
 
     { id:"w5", label:"Wk 5 · Oct 5", range:"Oct 5–11", dates:weekDates(2026,9,5),
@@ -249,6 +251,7 @@
       overrides:[
         {day:"Wed", match:"PHYS 242 — Tutorial", flag:true, append:" — Quiz 1", weight:4},
         {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 2", weight:10},
+        {day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 2B)", weight:4},
       ], crunch:false },
 
     { id:"rw", label:"Reading Week · Oct 12", range:"Oct 12–16", dates:weekDates(2026,9,12), noClasses:true,
@@ -285,6 +288,7 @@
       overrides:[
         {day:"Wed", match:"PHYS 242 — Lecture", exam:true, newLabel:"PHYS 242 — MIDTERM (Part 1)", weight:20},
         {day:"Wed", match:"PHYS 242 — Tutorial", exam:true, newLabel:"PHYS 242 — MIDTERM (Part 2)", weight:20},
+        {day:"Thu", match:"BIOL 102 — Lab", cancel:true},
       ], crunch:true },
 
     { id:"w8", label:"Wk 8 · Nov 2 ⚑", range:"Nov 2–8", dates:weekDates(2026,10,2),
@@ -316,7 +320,10 @@
         ],
         Sat:[{text:"BIOL DSMs 16–17 due", weight:0.76}],
       },
-      overrides:[{day:"Wed", match:"PHYS 242 — Tutorial", flag:true, append:" — Quiz 2", weight:4}], crunch:false },
+      overrides:[
+        {day:"Wed", match:"PHYS 242 — Tutorial", flag:true, append:" — Quiz 2", weight:4},
+        {day:"Thu", match:"BIOL 102 — Lab", cancel:true},
+      ], crunch:false },
 
     { id:"w10", label:"Wk 10 · Nov 16", range:"Nov 16–22", dates:weekDates(2026,10,16),
       note:"MATH 225 Quiz 5 lands the same day (Thu Nov 19) as BIOL Pre-Lab Quiz #4 — a real collision even though the week looks light otherwise. Good week to get ahead on MATH 112 / COGS 100 / PHYS review before Week 11.",
@@ -330,6 +337,7 @@
       },
       overrides:[
         {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 5", weight:10},
+        {day:"Thu", match:"BIOL 102 — Lab", cancel:true},
       ], crunch:false },
 
     { id:"w11", label:"Wk 11 · Nov 23 ⚑", range:"Nov 23–29", dates:weekDates(2026,10,23),
@@ -364,6 +372,7 @@
       },
       overrides:[
         {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 6", weight:10},
+        {day:"Thu", match:"BIOL 102 — Lab", cancel:true},
       ], crunch:false },
 
     { id:"exam", label:"Exam period · Dec", range:"December (dates TBA)", dates:null, noClasses:true,
