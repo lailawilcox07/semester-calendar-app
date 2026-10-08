@@ -251,7 +251,19 @@
         {day:"Wed", match:"PHYS 242 — Tutorial", flag:true, append:" — Quiz 1", weight:4},
         {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 2", weight:10},
         {day:"Thu", match:"BIOL 102 — Lab", flag:true, append:" (Lab 2B)", weight:4},
-      ], crunch:false },
+      ],
+      dayOverrides:[
+        // This week's actual Volleyball game: 6:30-7:30pm, replacing the
+        // wider placeholder block. Game time shifts week to week — update
+        // per-week.
+        {day:"Thu", start:"17:20", end:"18:20", label:"Study block", cat:"study"},
+        {day:"Thu", start:"18:20", end:"18:30", label:"Walk to Volleyball", cat:"commute"},
+        {day:"Thu", start:"18:30", end:"19:30", label:"Volleyball (Mixed Recreational)", cat:"sport"},
+        {day:"Thu", start:"19:30", end:"19:45", label:"Walk home", cat:"commute"},
+        {day:"Thu", start:"19:45", end:"20:15", label:"Dinner", cat:"meal"},
+        {day:"Thu", start:"20:15", end:"21:30", label:"Study block", cat:"study"},
+      ],
+      crunch:false },
 
     { id:"rw", label:"Reading Week · Oct 12", range:"Oct 12–16", dates:weekDates(2026,9,12), noClasses:true,
       note:"No classes. Best week to fully catch up on BIOL DSMs/Anki, bank a PHYS problem set ahead, and start early review for the Week 6 crunch right after this.",
