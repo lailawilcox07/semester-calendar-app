@@ -52,5 +52,9 @@
   "deadline-ov-w6|COGS100|quiz|COGS 100 — Quiz 1-evening": "2026-10-22T00:01:46.866Z",
   "deadline-ov-w6|MATH112|quiz|MATH 112 — Quiz 2-evening": "2026-10-22T00:01:46.966Z",
   "deadline-ov-w6|MATH225|quiz|MATH 225 — Tutorial — Quiz 3-evening": "2026-10-22T00:01:47.068Z",
-  "deadline-ov-w6|BIOL102|lab|BIOL 102 — Lab (Lab 2C)-evening": "2026-10-22T00:01:47.170Z"
+  "deadline-ov-w6|BIOL102|lab|BIOL 102 — Lab (Lab 2C)-evening": "2026-10-22T00:01:47.170Z",
+  "deadline-ov-w6|COGS100|quiz|COGS 100 — Quiz 1-morning": "2026-10-22T14:38:52.819Z",
+  "deadline-ov-w6|MATH112|quiz|MATH 112 — Quiz 2-morning": "2026-10-22T14:38:52.961Z",
+  "deadline-ov-w6|MATH225|quiz|MATH 225 — Tutorial — Quiz 3-morning": "2026-10-22T14:38:53.032Z",
+  "deadline-ov-w6|BIOL102|lab|BIOL 102 — Lab (Lab 2C)-morning": "2026-10-22T14:38:53.160Z"
 }
