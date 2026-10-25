@@ -3,7 +3,7 @@
 // (loaded after data.js via <script>) or in Node (the notification script).
 (function(root){
   const D = (typeof module !== "undefined" && module.exports) ? require("./data.js") : root.SCHEDULE_DATA;
-  const { base, noClassDay, weeks, examDates, COURSE_NAMES, COURSE_COLOR, FINAL_WEIGHT, WEEKLY_HABITS, DAILY_HABITS, TASKS } = D;
+  const { base, noClassDay, weeks, examDates, COURSE_NAMES, COURSE_COLOR, FINAL_WEIGHT, WEEKLY_HABITS, DAILY_HABITS, TASKS, GRADES } = D;
 
   const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
   const DAYFULL = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
@@ -207,9 +207,64 @@
     return null;
   }
 
+  // ---- grade tracker ----
+  // Resolves a GRADES item's weight/date from its linked deadline (the single
+  // source of truth for both), falling back to the item's own weight/no date
+  // for standalone items like Participation.
+  function resolveGradeItem(raw){
+    if(raw.dueId){
+      const dl = DEADLINES.find(d=>d.id===raw.dueId);
+      if(dl) return { label:raw.label, weight:dl.weight, date:resolveDeadlineDate(dl) };
+    }
+    return { label:raw.label, weight:raw.weight||0, date:null };
+  }
+  // grade === null/undefined means "not entered yet". A standalone item (no
+  // linked deadline, e.g. Participation) is always open to enter, never
+  // "upcoming." A linked item whose date is TBA (e.g. an unpublished final)
+  // hasn't happened yet either, so it's "upcoming," not "pending."
+  function gradeItemStatus(date, grade, standalone){
+    if(grade!=null) return "entered";
+    if(standalone) return "pending";
+    if(!date) return "upcoming";
+    const today = new Date(); today.setHours(0,0,0,0);
+    return date<=today ? "pending" : "upcoming";
+  }
+  // getGrade(itemId) => number|null, where itemId is "<course>::<catIdx>::<itemIdx>".
+  // Returns per-category breakdown plus the course's running grade: earned
+  // weight / graded weight so far (the usual "current grade" a gradebook
+  // shows), not earned/100 (which would understate it before everything's in).
+  function computeCourseGrade(course, getGrade){
+    const cats = (GRADES[course]||[]).map((cat,ci)=>{
+      const items = cat.items.map((raw,ii)=>{
+        const id = course+"::"+ci+"::"+ii;
+        const grade = getGrade(id);
+        const { label, weight, date } = resolveGradeItem(raw);
+        return { id, label, weight, date, grade, status:gradeItemStatus(date, grade, !raw.dueId) };
+      });
+      let earned=0, gradedWeight=0, totalWeight=0;
+      if(cat.bestOf){
+        const perItemWeight = items.length ? items[0].weight : 0;
+        totalWeight = perItemWeight * cat.bestOf.count;
+        const entered = items.filter(i=>i.status==="entered").sort((a,b)=> b.grade-a.grade);
+        entered.slice(0, cat.bestOf.count).forEach(i=>{ earned += i.weight*i.grade/100; gradedWeight += i.weight; });
+      } else {
+        items.forEach(i=>{
+          totalWeight += i.weight;
+          if(i.status==="entered"){ earned += i.weight*i.grade/100; gradedWeight += i.weight; }
+        });
+      }
+      return { name:cat.name, bestOf:cat.bestOf||null, items, earned, gradedWeight, totalWeight };
+    });
+    const earned = cats.reduce((s,c)=>s+c.earned,0);
+    const gradedWeight = cats.reduce((s,c)=>s+c.gradedWeight,0);
+    const totalWeight = cats.reduce((s,c)=>s+c.totalWeight,0);
+    const currentGrade = gradedWeight>0 ? (earned/gradedWeight*100) : null;
+    return { categories:cats, earned, gradedWeight, totalWeight, currentGrade };
+  }
+
   const engine = {
     // re-exported data, so one require()/one <script> gets everything
-    base, noClassDay, weeks, examDates, COURSE_NAMES, COURSE_COLOR, FINAL_WEIGHT, WEEKLY_HABITS, DAILY_HABITS, TASKS,
+    base, noClassDay, weeks, examDates, COURSE_NAMES, COURSE_COLOR, FINAL_WEIGHT, WEEKLY_HABITS, DAILY_HABITS, TASKS, GRADES,
     // constants
     DAYS, DAYFULL, START_MIN, END_MIN, TOTAL_MIN,
     // functions
@@ -217,6 +272,7 @@
     buildDeadlines, resolveDeadlineDate, DEADLINES,
     periodStartFor, genericTasks, getTasks, leadDays, priorityScore,
     spliceBlock, buildDayBlocks, resolveWeekForDate,
+    resolveGradeItem, gradeItemStatus, computeCourseGrade,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = engine;
   else root.ENGINE = engine;

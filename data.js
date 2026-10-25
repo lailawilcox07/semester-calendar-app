@@ -660,7 +660,114 @@
     ],
   };
 
-  const data = { base, noClassDay, weeks, examDates, COURSE_NAMES, COURSE_COLOR, FINAL_WEIGHT, WEEKLY_HABITS, DAILY_HABITS, TASKS };
+  // ---- grade tracker: per-course categories of gradeable items. Most items
+  // link to an existing deadline (dueId) so their weight/date come from one
+  // source of truth; a few (Participation) have no due date and carry their
+  // own weight. Actual grade VALUES are never stored here — they live in the
+  // browser's localStorage (entered through the Grades tab), same as
+  // done/started state, so this file stays pure structure.
+  const GRADES = {
+    BIOL102: [
+      { name:"Lab Quizzes", items:[
+        { label:"Pre-Lab Quiz #1", dueId:"due-w2-Thu-0" },
+        { label:"Pre-Lab Quiz #2", dueId:"due-w4-Thu-1" },
+        { label:"Pre-Lab Quiz #3", dueId:"due-w7-Thu-0" },
+        { label:"Pre-Lab Quiz #4", dueId:"due-w10-Thu-0" },
+        { label:"Scavenger Hunt", dueId:"due-w4-Thu-2" },
+        { label:"Academics 101", dueId:"due-w4-Thu-3" },
+        { label:"Biosafety Quiz", dueId:"due-w4-Thu-4" },
+      ]},
+      { name:"Lab Assignments", items:[
+        { label:"Lab 1B", dueId:"due-w3-Thu-0" },
+        { label:"Lab 2B", dueId:"due-w5-Thu-0" },
+        { label:"Lab 2C", dueId:"ov-w6|BIOL102|lab|BIOL 102 — Lab (Lab 2C)" },
+        { label:"Lab 3B", dueId:"ov-w8|BIOL102|lab|BIOL 102 — Lab (Lab 3B)" },
+        { label:"Lab 4B", dueId:"ov-w11|BIOL102|lab|BIOL 102 — Lab (Lab 4B)" },
+      ]},
+      { name:"Lecture Quizzes", items:[
+        { label:"Lecture Quiz 1", dueId:"due-w3-Fri-0" },
+        { label:"Lecture Quiz 2", dueId:"due-w6-Fri-0" },
+        { label:"Lecture Quiz 3", dueId:"due-w9-Fri-0" },
+        { label:"Lecture Quiz 4", dueId:"due-w12-Fri-0" },
+      ]},
+      { name:"DSMs", items:[
+        { label:"DSMs 1–7", dueId:"due-w3-Sat-0" },
+        { label:"DSMs 8–11", dueId:"due-w5-Sat-0" },
+        { label:"DSMs 12,13,21", dueId:"due-w7-Sat-0" },
+        { label:"DSMs 16–17", dueId:"due-w9-Sat-0" },
+        { label:"DSMs 18,20", dueId:"due-w11-Sat-0" },
+        { label:"DSMs 19,14,15", dueId:"due-w12-Sat-0" },
+      ]},
+      { name:"Exams", items:[
+        { label:"Midterm", dueId:"due-w8-Sat-0" },
+        { label:"Final Exam", dueId:"final-BIOL102" },
+      ]},
+    ],
+    COGS100: [
+      { name:"Quizzes", items:[
+        { label:"Quiz 1", dueId:"ov-w6|COGS100|quiz|COGS 100 — Quiz 1" },
+        { label:"Quiz 2", dueId:"ov-w11|COGS100|quiz|COGS 100 — Quiz 2" },
+      ]},
+      { name:"Assignments/Tutorial", items:[
+        { label:"Memory Test", dueId:"due-w8-Fri-0" },
+        { label:"Finite State Machine and Logical Models", dueId:"due-w11-Fri-1" },
+      ]},
+      { name:"Final Exam", items:[
+        { label:"Final Exam", dueId:"final-COGS100" },
+      ]},
+    ],
+    MATH112: [
+      { name:"Quizzes", items:[
+        { label:"Quiz 1", dueId:"due-w4-Thu-0" },
+        { label:"Quiz 2", dueId:"ov-w6|MATH112|quiz|MATH 112 — Quiz 2" },
+        { label:"Quiz 3", dueId:"ov-w11|MATH112|quiz|MATH 112 — Quiz 3" },
+      ]},
+      { name:"Final Exam", items:[
+        { label:"Final Exam", dueId:"final-MATH112" },
+      ]},
+    ],
+    MATH225: [
+      // Best 4 of 6 quizzes count — the two lowest are dropped.
+      { name:"Quizzes", bestOf:{count:4, of:6}, items:[
+        { label:"Quiz 1", dueId:"ov-w2|MATH225|quiz|MATH 225 — Tutorial — Quiz 1" },
+        { label:"Quiz 2", dueId:"ov-w5|MATH225|quiz|MATH 225 — Tutorial — Quiz 2" },
+        { label:"Quiz 3", dueId:"ov-w6|MATH225|quiz|MATH 225 — Tutorial — Quiz 3" },
+        { label:"Quiz 4", dueId:"ov-w8|MATH225|quiz|MATH 225 — Tutorial — Quiz 4" },
+        { label:"Quiz 5", dueId:"ov-w10|MATH225|quiz|MATH 225 — Tutorial — Quiz 5" },
+        { label:"Quiz 6", dueId:"ov-w12|MATH225|quiz|MATH 225 — Tutorial — Quiz 6" },
+      ]},
+      { name:"Final Exam", items:[
+        { label:"Final Exam", dueId:"final-MATH225" },
+      ]},
+    ],
+    PHYS242: [
+      { name:"Quizzes", items:[
+        { label:"Tutorial Quiz 1", dueId:"ov-w5|PHYS242|quiz|PHYS 242 — Tutorial — Quiz 1" },
+        { label:"Tutorial Quiz 2", dueId:"ov-w9|PHYS242|quiz|PHYS 242 — Tutorial — Quiz 2" },
+        { label:"Tutorial Quiz 3", dueId:"ov-w11|PHYS242|quiz|PHYS 242 — Tutorial — Quiz 3" },
+      ]},
+      { name:"Problem Sets", items:[
+        { label:"Problem Set 1", dueId:"due-w3-Mon-0" },
+        { label:"Problem Set 2", dueId:"due-w4-Mon-0" },
+        { label:"Problem Set 3", dueId:"due-w5-Mon-0" },
+        { label:"Problem Set 4", dueId:"due-w6-Mon-0" },
+        { label:"Problem Set 5", dueId:"due-w8-Mon-0" },
+        { label:"Problem Set 6", dueId:"due-w9-Mon-0" },
+        { label:"Problem Set 7", dueId:"due-w10-Mon-0" },
+        { label:"Problem Set 8", dueId:"due-w11-Mon-0" },
+        { label:"Problem Set 9", dueId:"due-w12-Mon-0" },
+      ]},
+      { name:"Participation", items:[
+        { label:"Participation", weight:5 },
+      ]},
+      { name:"Exams", items:[
+        { label:"Midterm", dueId:"ov-w7|PHYS242|exam|PHYS 242 — MIDTERM" },
+        { label:"Final Exam", dueId:"final-PHYS242" },
+      ]},
+    ],
+  };
+
+  const data = { base, noClassDay, weeks, examDates, COURSE_NAMES, COURSE_COLOR, FINAL_WEIGHT, WEEKLY_HABITS, DAILY_HABITS, TASKS, GRADES };
   if (typeof module !== "undefined" && module.exports) module.exports = data;
   else root.SCHEDULE_DATA = data;
 

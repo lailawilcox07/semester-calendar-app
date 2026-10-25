@@ -267,6 +267,36 @@
   .course-bar-fill{height:100%; border-radius:3px; transition:width .2s;}
   .course-items{display:flex; flex-direction:column;}
 
+  /* ---- grades tab ---- */
+  .gradeslist{display:flex; flex-direction:column; gap:14px;}
+  .grade-card{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px;}
+  .grade-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px; gap:10px;}
+  .grade-course-name{font-family:"Fraunces",serif; font-size:16px; font-weight:600;}
+  .grade-current{font-size:15px; font-weight:700; font-family:"IBM Plex Mono",monospace;}
+  .grade-subline{font-size:11.5px; color:var(--muted); margin-bottom:10px;}
+  .grade-cat{margin-top:10px;}
+  .grade-cat-head{display:flex; justify-content:space-between; align-items:baseline; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; margin-bottom:5px;}
+  .grade-item{
+    display:flex; align-items:center; gap:8px; padding:7px 0; font-size:13px;
+    border-top:1px solid var(--line);
+  }
+  .grade-item:first-child{border-top:none;}
+  .grade-item-label{flex:1;}
+  .grade-item-weight{font-size:11px; color:var(--muted); flex:none; white-space:nowrap;}
+  .grade-badge{
+    font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.03em;
+    padding:2px 7px; border-radius:999px; flex:none; white-space:nowrap;
+  }
+  .grade-badge.entered{background:var(--meal-tint); color:var(--meal);}
+  .grade-badge.pending{background:var(--flag-tint); color:var(--flag);}
+  .grade-badge.upcoming{background:var(--line); color:var(--muted);}
+  .grade-input{
+    width:52px; flex:none; font-family:"IBM Plex Mono",monospace; font-size:12.5px; text-align:right;
+    border:1px solid var(--line); border-radius:6px; padding:4px 5px; background:var(--bg); color:var(--ink);
+  }
+  .grade-input:disabled{opacity:.5;}
+  .grade-pct-sign{font-size:12px; color:var(--muted); flex:none; margin-left:-4px;}
+
   /* ---- block detail modal ---- */
   .modal-backdrop{
     position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:50;
@@ -330,6 +360,7 @@
     <button data-tab="todo" type="button">To-Do</button>
     <button data-tab="due" type="button">Due</button>
     <button data-tab="prog" type="button">Progress</button>
+    <button data-tab="grades" type="button">Grades</button>
   </nav>
 
   <button class="notify-btn" id="notifyBtn" type="button" hidden>🔔 Enable notifications</button>
@@ -364,6 +395,10 @@
   <div id="view-prog" hidden>
     <div class="proglist" id="proglist"></div>
   </div>
+
+  <div id="view-grades" hidden>
+    <div class="gradeslist" id="gradeslist"></div>
+  </div>
 </div>
 
 <div class="modal-backdrop" id="modalBackdrop" hidden>
@@ -385,9 +420,10 @@
 (function(){
   const { DAYS, DAYFULL, START_MIN, END_MIN, TOTAL_MIN, toMin, fmt, dstr, detectCourse, stripPart,
     base, noClassDay, weeks, examDates, COURSE_NAMES, COURSE_COLOR, FINAL_WEIGHT,
-    WEEKLY_HABITS, DAILY_HABITS, TASKS, DEADLINES,
+    WEEKLY_HABITS, DAILY_HABITS, TASKS, DEADLINES, GRADES,
     buildDeadlines, resolveDeadlineDate, periodStartFor, genericTasks, getTasks,
-    leadDays, priorityScore, spliceBlock, buildDayBlocks, resolveWeekForDate } = window.ENGINE;
+    leadDays, priorityScore, spliceBlock, buildDayBlocks, resolveWeekForDate,
+    resolveGradeItem, gradeItemStatus, computeCourseGrade } = window.ENGINE;
   const PPM = 1.4;             // pixels per minute
   const HOUR_PX = 60*PPM;
 
@@ -528,6 +564,16 @@
     try{ localStorage.setItem(STARTED_KEY, JSON.stringify(startedState)); }catch(e){}
   }
   function toggleStarted(id){ setStarted(id, !isStarted(id)); renderDue(); }
+
+  // ---- grades store (localStorage) — keyed by "<course>::<catIdx>::<itemIdx>" ----
+  const GRADES_KEY = "semcal-grades-v1";
+  function loadGrades(){ try{ return JSON.parse(localStorage.getItem(GRADES_KEY)||"{}"); }catch(e){ return {}; } }
+  let gradesState = loadGrades();
+  function getGrade(id){ return gradesState[id]!=null ? gradesState[id] : null; }
+  function setGrade(id, val){
+    if(val==null || val==="") delete gradesState[id]; else gradesState[id]=val;
+    try{ localStorage.setItem(GRADES_KEY, JSON.stringify(gradesState)); }catch(e){}
+  }
 
   // Calendar blocks: past ones are checked by default (the time already happened),
   // but that's just a default — an explicit check or uncheck always wins over it.
@@ -868,6 +914,53 @@
     });
   }
 
+  // ---- grades tab ----
+  function gradeItemRowHtml(item){
+    const disabled = item.status==="upcoming";
+    const val = item.grade!=null ? item.grade : "";
+    return `<div class="grade-item">
+      <span class="grade-badge ${item.status}">${item.status}</span>
+      <span class="grade-item-label">${item.label}</span>
+      <span class="grade-item-weight mono">${item.weight}%</span>
+      <input type="number" class="grade-input" inputmode="decimal" min="0" max="100" step="0.01"
+        data-gradeid="${item.id}" value="${val}" placeholder="—" ${disabled?"disabled":""}>
+      <span class="grade-pct-sign">%</span>
+    </div>`;
+  }
+  function renderGrades(){
+    const el = document.getElementById("gradeslist");
+    const courses = Object.keys(COURSE_NAMES);
+    el.innerHTML = courses.map(c=>{
+      const result = computeCourseGrade(c, getGrade);
+      const color = "var(--"+COURSE_COLOR[c]+")";
+      const currentStr = result.currentGrade!=null ? result.currentGrade.toFixed(2)+"%" : "—";
+      return `<div class="grade-card">
+        <div class="grade-head">
+          <span class="grade-course-name" style="color:${color}">${COURSE_NAMES[c]}</span>
+          <span class="grade-current">${currentStr}</span>
+        </div>
+        <div class="grade-subline">Based on ${Math.round(result.gradedWeight)}% of ${Math.round(result.totalWeight)}% graded so far</div>
+        ${result.categories.map(cat=> `<div class="grade-cat">
+          <div class="grade-cat-head">
+            <span>${cat.name}${cat.bestOf?` (best ${cat.bestOf.count} of ${cat.bestOf.of})`:""}</span>
+            <span>${Math.round(cat.totalWeight)}%</span>
+          </div>
+          ${cat.items.map(gradeItemRowHtml).join("")}
+        </div>`).join("")}
+      </div>`;
+    }).join("");
+    el.querySelectorAll(".grade-input").forEach(inp=>{
+      inp.addEventListener("change", ()=>{
+        const raw = inp.value.trim();
+        let val = raw==="" ? null : Number(raw);
+        if(val!=null && !isNaN(val)) val = Math.max(0, Math.min(100, val));
+        else if(val!=null) val = null; // non-numeric garbage — treat as cleared
+        setGrade(inp.dataset.gradeid, val);
+        renderGrades();
+      });
+    });
+  }
+
   // ---- now strip ----
   function renderNowStrip(){
     const el = document.getElementById("nowstrip");
@@ -1050,9 +1143,11 @@
     document.getElementById("view-todo").hidden = tab!=="todo";
     document.getElementById("view-due").hidden = tab!=="due";
     document.getElementById("view-prog").hidden = tab!=="prog";
+    document.getElementById("view-grades").hidden = tab!=="grades";
     if(tab==="todo") renderTaskTodo();
     if(tab==="due") renderDue();
     if(tab==="prog") renderProgress();
+    if(tab==="grades") renderGrades();
   });
 
   document.getElementById("showUngraded").addEventListener("change", e=>{
@@ -1066,6 +1161,7 @@
   renderTaskTodo();
   renderDue();
   renderProgress();
+  renderGrades();
   renderNowStrip();
   setInterval(renderNowStrip, 30000);
 
