@@ -387,13 +387,36 @@
         {day:"Thu", match:"BIOL 102 — Lab", cancel:true},
       ], crunch:false },
 
-    { id:"exam", label:"Exam period · Dec", range:"December (dates TBA)", dates:null, noClasses:true,
-      note:"All five finals fall in this window — exact dates weren't published in any syllabus yet. MATH 112 (55% final weight + the 38% pass floor) and MATH 225 (60% final weight) should get first claim on review time, with COGS 100 (50% final weight) close behind. Come back and fill in real dates once SOLUS posts them.",
-      due:{}, overrides:[], crunch:false },
+    { id:"examwk1", label:"Exam Period · Dec 14", range:"Dec 14–20", dates:weekDates(2026,11,14), noClasses:true,
+      note:"<b>BIOL 102 Final</b> Wed Dec 16, 9–11am. <b>MATH 225 Final</b> Fri Dec 18, 2–5pm (60% final weight — top priority). <b>MATH 112 Final</b> Sat Dec 19, 9am–12pm (55% final weight + the 38% pass floor).",
+      due:{}, overrides:[],
+      dayOverrides:[
+        {day:"Wed", start:"09:00", end:"11:00", label:"BIOL 102 — FINAL EXAM", cat:"exam"},
+        {day:"Fri", start:"14:00", end:"17:00", label:"MATH 225 — FINAL EXAM", cat:"exam"},
+        {day:"Sat", start:"09:00", end:"12:00", label:"MATH 112 — FINAL EXAM", cat:"exam"},
+      ],
+      crunch:true },
+
+    { id:"examwk2", label:"Exam Period · Dec 21", range:"Dec 21–27", dates:weekDates(2026,11,21), noClasses:true,
+      note:"<b>COGS 100 Final</b> Tue Dec 22, 9am–12pm (50% final weight). <b>PHYS 242 Final</b> same day, Tue Dec 22, 2–5pm (45% final weight) — two finals, one day; plan the morning/afternoon split in advance.",
+      due:{}, overrides:[],
+      dayOverrides:[
+        {day:"Tue", start:"09:00", end:"12:00", label:"COGS 100 — FINAL EXAM", cat:"exam"},
+        {day:"Tue", start:"14:00", end:"17:00", label:"PHYS 242 — FINAL EXAM", cat:"exam"},
+      ],
+      crunch:true },
   ];
 
-  // ---- Fill these in once SOLUS publishes exam dates, e.g. new Date(2026,11,10) for Dec 10, 2026 ----
-  const examDates = { BIOL102:null, COGS100:null, MATH112:null, MATH225:null, PHYS242:null };
+  // Real final exam dates/times from SOLUS:
+  // BIOL102 Dec16 9-11am, MATH225 Dec18 2-5pm, MATH112 Dec19 9am-12pm,
+  // COGS100 Dec22 9am-12pm, PHYS242 Dec22 2-5pm.
+  const examDates = {
+    BIOL102: new Date(2026,11,16),
+    COGS100: new Date(2026,11,22),
+    MATH112: new Date(2026,11,19),
+    MATH225: new Date(2026,11,18),
+    PHYS242: new Date(2026,11,22),
+  };
 
   const COURSE_NAMES = { BIOL102:"BIOL 102", COGS100:"COGS 100", MATH112:"MATH 112", MATH225:"MATH 225", PHYS242:"PHYS 242" };
   const COURSE_COLOR = { BIOL102:"sport", COGS100:"commute", MATH112:"study", MATH225:"meal", PHYS242:"sleep" };
