@@ -306,7 +306,6 @@
     { id:"w8", label:"Wk 8 · Nov 2 ⚑", range:"Nov 2–8", dates:weekDates(2026,10,2),
       note:"<b>Three graded items inside 3 days:</b> MATH 225 Quiz 4 (Nov 5) lands just two days before the <b>BIOL 102 Midterm (Sat Nov 7, 11am–1pm)</b>, plus the COGS 100 Memory Test (Nov 6 — window's been open since Oct 26). Saturday afternoon is recovery, not study time.",
       due:{
-        Mon:[{text:"PHYS 242 Problem Set 5 due", weight:2}],
         Sat:[{text:"BIOL 102 MIDTERM · 11am–1pm", weight:20}],
         Fri:[
           {text:"COGS 100 Memory Test due (window open since Oct 26)", weight:5},
@@ -324,7 +323,7 @@
     { id:"w9", label:"Wk 9 · Nov 9", range:"Nov 9–15", dates:weekDates(2026,10,9),
       note:"PHYS Quiz 2 (Wed tutorial) and BIOL Lecture Quiz 3 (due Fri) both fall this week — split flex time between them early.",
       due:{
-        Mon:[{text:"PHYS 242 Problem Set 6 due", weight:2}],
+        Mon:[{text:"PHYS 242 Problem Set 5 due", weight:2}],
         Fri:[
           {text:"BIOL Lecture Quiz 3 due", weight:5},
           {text:"MATH 225 Assignment 8 due (ungraded practice)", weight:5, graded:false},
@@ -340,7 +339,7 @@
     { id:"w10", label:"Wk 10 · Nov 16", range:"Nov 16–22", dates:weekDates(2026,10,16),
       note:"MATH 225 Quiz 5 lands the same day (Thu Nov 19) as BIOL Pre-Lab Quiz #4 — a real collision even though the week looks light otherwise. Good week to get ahead on MATH 112 / COGS 100 / PHYS review before Week 11.",
       due:{
-        Mon:[{text:"PHYS 242 Problem Set 7 due", weight:2}],
+        Mon:[{text:"PHYS 242 Problem Set 6 due", weight:2}],
         Thu:[{text:"BIOL Pre-Lab Quiz #4 due (Lab 4A)", weight:2}],
         Fri:[
           {text:"MATH 225 Assignment 9 due (ungraded practice)", weight:5, graded:false},
@@ -355,7 +354,7 @@
     { id:"w11", label:"Wk 11 · Nov 23 ⚑", range:"Nov 23–29", dates:weekDates(2026,10,23),
       note:"<b>Hardest week of the term.</b> PHYS Quiz 3 (Wed), MATH 112 Quiz 3 &amp; COGS 100 Quiz 2 both Thu, then Fri brings the COGS tutorial (time TBC) plus its Finite State Machine and Logical Models assignment due same-day (no separate window, unlike the Memory Test), BIOL Lab 4B in-person, BIOL DSMs due Sat. Start review for the Nov 25–26 assessments the weekend before — there isn't enough room inside this week alone.",
       due:{
-        Mon:[{text:"PHYS 242 Problem Set 8 due", weight:2}],
+        Mon:[{text:"PHYS 242 Problem Set 7 due", weight:2}],
         Fri:[
           {text:"COGS 100 tutorial (time TBC)", weight:0},
           {text:"COGS 100 Finite State Machine and Logical Models due (same day, no separate window)", weight:5},
@@ -374,7 +373,7 @@
     { id:"w12", label:"Wk 12 · Nov 30", range:"Nov 30–Dec 4", dates:weekDates(2026,10,30),
       note:"MATH 225 Quiz 6 (Dec 3, the last one — best 4 of 6 count) lands right before BIOL closes out its term work: Lecture Quiz 4 (Fri) and the final DSM batch (Sat). Final exam dates should be posted on SOLUS by now — once confirmed, come back and block review time in the Sunday planning slot.",
       due:{
-        Mon:[{text:"PHYS 242 Problem Set 9 due", weight:2}],
+        Mon:[{text:"PHYS 242 Problem Set 8 due", weight:2}],
         Fri:[
           {text:"BIOL Lecture Quiz 4 due", weight:5},
           {text:"MATH 225 Assignment 11 due (ungraded practice)", weight:5, graded:false},
@@ -495,7 +494,6 @@
     "due-w4-Mon-0": PHYS_PS_TASKS,
     "due-w5-Mon-0": PHYS_PS_TASKS,
     "due-w6-Mon-0": PHYS_PS_TASKS,
-    "due-w8-Mon-0": PHYS_PS_TASKS,
     "due-w9-Mon-0": PHYS_PS_TASKS,
     "due-w10-Mon-0": PHYS_PS_TASKS,
     "due-w11-Mon-0": PHYS_PS_TASKS,
@@ -774,11 +772,10 @@
         { label:"Problem Set 2", dueId:"due-w4-Mon-0" },
         { label:"Problem Set 3", dueId:"due-w5-Mon-0" },
         { label:"Problem Set 4", dueId:"due-w6-Mon-0" },
-        { label:"Problem Set 5", dueId:"due-w8-Mon-0" },
-        { label:"Problem Set 6", dueId:"due-w9-Mon-0" },
-        { label:"Problem Set 7", dueId:"due-w10-Mon-0" },
-        { label:"Problem Set 8", dueId:"due-w11-Mon-0" },
-        { label:"Problem Set 9", dueId:"due-w12-Mon-0" },
+        { label:"Problem Set 5", dueId:"due-w9-Mon-0" },
+        { label:"Problem Set 6", dueId:"due-w10-Mon-0" },
+        { label:"Problem Set 7", dueId:"due-w11-Mon-0" },
+        { label:"Problem Set 8", dueId:"due-w12-Mon-0" },
       ]},
       { name:"Participation", items:[
         { label:"Participation", weight:5 },
