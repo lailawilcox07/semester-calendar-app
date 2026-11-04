@@ -379,7 +379,7 @@
           {text:"MATH 225 Assignment 11 due (ungraded practice)", weight:5, graded:false},
           {text:"MATH 112 Homework 11 due (ungraded)", weight:5, graded:false},
         ],
-        Sat:[{text:"BIOL DSMs 19,14,15 due", weight:2.67}],
+        Sat:[{text:"BIOL DSMs 19,14,15 due", weight:1.14}],
       },
       overrides:[
         {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 6", weight:10},
@@ -684,37 +684,41 @@
   // ---- grade tracker: per-course categories of gradeable items. Most items
   // link to an existing deadline (dueId) so their weight/date come from one
   // source of truth; a few (Participation) have no due date and carry their
-  // own weight. Actual grade VALUES are never stored here — they live in the
-  // browser's localStorage (entered through the Grades tab), same as
-  // done/started state, so this file stays pure structure.
+  // own weight. An item's `grade` field is the real, already-known mark from
+  // the student's actual gradebook — baked in here (not localStorage) so it
+  // shows the same on every device. Anything still grey/estimated in her
+  // gradebook (not yet officially graded back) is left without a `grade`
+  // here; the Grades tab's localStorage entry (per-device) is for the
+  // student to fill in once a real mark comes back, and always overrides
+  // this default if both are present.
   const GRADES = {
     BIOL102: [
       { name:"Lab Quizzes", items:[
-        { label:"Pre-Lab Quiz #1", dueId:"due-w2-Thu-0" },
-        { label:"Pre-Lab Quiz #2", dueId:"due-w4-Thu-1" },
-        { label:"Pre-Lab Quiz #3", dueId:"due-w7-Thu-0" },
+        { label:"Pre-Lab Quiz #1", dueId:"due-w2-Thu-0", grade:100 },
+        { label:"Pre-Lab Quiz #2", dueId:"due-w4-Thu-1", grade:87.5 },
+        { label:"Pre-Lab Quiz #3", dueId:"due-w7-Thu-0", grade:100 },
         { label:"Pre-Lab Quiz #4", dueId:"due-w10-Thu-0" },
-        { label:"Scavenger Hunt", dueId:"due-w4-Thu-2" },
-        { label:"Academics 101", dueId:"due-w4-Thu-3" },
-        { label:"Biosafety Quiz", dueId:"due-w4-Thu-4" },
+        { label:"Scavenger Hunt", dueId:"due-w4-Thu-2", grade:86 },
+        { label:"Academics 101", dueId:"due-w4-Thu-3", grade:100 },
+        { label:"Biosafety Quiz", dueId:"due-w4-Thu-4", grade:100 },
       ]},
       { name:"Lab Assignments", items:[
-        { label:"Lab 1B", dueId:"due-w3-Thu-0" },
-        { label:"Lab 2B", dueId:"due-w5-Thu-0" },
-        { label:"Lab 2C", dueId:"ov-w6|BIOL102|lab|BIOL 102 — Lab (Lab 2C)" },
+        { label:"Lab 1B", dueId:"due-w3-Thu-0", grade:87.5 },
+        { label:"Lab 2B", dueId:"due-w5-Thu-0", grade:100 },
+        { label:"Lab 2C", dueId:"ov-w6|BIOL102|lab|BIOL 102 — Lab (Lab 2C)", grade:100 },
         { label:"Lab 3B", dueId:"ov-w8|BIOL102|lab|BIOL 102 — Lab (Lab 3B)" },
         { label:"Lab 4B", dueId:"ov-w11|BIOL102|lab|BIOL 102 — Lab (Lab 4B)" },
       ]},
       { name:"Lecture Quizzes", items:[
-        { label:"Lecture Quiz 1", dueId:"due-w3-Fri-0" },
-        { label:"Lecture Quiz 2", dueId:"due-w6-Fri-0" },
+        { label:"Lecture Quiz 1", dueId:"due-w3-Fri-0", grade:95 },
+        { label:"Lecture Quiz 2", dueId:"due-w6-Fri-0", grade:100 },
         { label:"Lecture Quiz 3", dueId:"due-w9-Fri-0" },
         { label:"Lecture Quiz 4", dueId:"due-w12-Fri-0" },
       ]},
       { name:"DSMs", items:[
-        { label:"DSMs 1–7", dueId:"due-w3-Sat-0" },
-        { label:"DSMs 8–11", dueId:"due-w5-Sat-0" },
-        { label:"DSMs 12,13,21", dueId:"due-w7-Sat-0" },
+        { label:"DSMs 1–7", dueId:"due-w3-Sat-0", grade:100 },
+        { label:"DSMs 8–11", dueId:"due-w5-Sat-0", grade:100 },
+        { label:"DSMs 12,13,21", dueId:"due-w7-Sat-0", grade:100 },
         { label:"DSMs 16–17", dueId:"due-w9-Sat-0" },
         { label:"DSMs 18,20", dueId:"due-w11-Sat-0" },
         { label:"DSMs 19,14,15", dueId:"due-w12-Sat-0" },
@@ -726,7 +730,7 @@
     ],
     COGS100: [
       { name:"Quizzes", items:[
-        { label:"Quiz 1", dueId:"ov-w6|COGS100|quiz|COGS 100 — Quiz 1" },
+        { label:"Quiz 1", dueId:"ov-w6|COGS100|quiz|COGS 100 — Quiz 1", grade:72.5 },
         { label:"Quiz 2", dueId:"ov-w11|COGS100|quiz|COGS 100 — Quiz 2" },
       ]},
       { name:"Assignments/Tutorial", items:[
@@ -739,7 +743,7 @@
     ],
     MATH112: [
       { name:"Quizzes", items:[
-        { label:"Quiz 1", dueId:"due-w4-Thu-0" },
+        { label:"Quiz 1", dueId:"due-w4-Thu-0", grade:90.83 },
         { label:"Quiz 2", dueId:"ov-w6|MATH112|quiz|MATH 112 — Quiz 2" },
         { label:"Quiz 3", dueId:"ov-w11|MATH112|quiz|MATH 112 — Quiz 3" },
       ]},
@@ -750,8 +754,8 @@
     MATH225: [
       // Best 4 of 6 quizzes count — the two lowest are dropped.
       { name:"Quizzes", bestOf:{count:4, of:6}, items:[
-        { label:"Quiz 1", dueId:"ov-w2|MATH225|quiz|MATH 225 — Tutorial — Quiz 1" },
-        { label:"Quiz 2", dueId:"ov-w5|MATH225|quiz|MATH 225 — Tutorial — Quiz 2" },
+        { label:"Quiz 1", dueId:"ov-w2|MATH225|quiz|MATH 225 — Tutorial — Quiz 1", grade:100 },
+        { label:"Quiz 2", dueId:"ov-w5|MATH225|quiz|MATH 225 — Tutorial — Quiz 2", grade:91.67 },
         { label:"Quiz 3", dueId:"ov-w6|MATH225|quiz|MATH 225 — Tutorial — Quiz 3" },
         { label:"Quiz 4", dueId:"ov-w8|MATH225|quiz|MATH 225 — Tutorial — Quiz 4" },
         { label:"Quiz 5", dueId:"ov-w10|MATH225|quiz|MATH 225 — Tutorial — Quiz 5" },
@@ -763,15 +767,15 @@
     ],
     PHYS242: [
       { name:"Quizzes", items:[
-        { label:"Tutorial Quiz 1", dueId:"ov-w5|PHYS242|quiz|PHYS 242 — Tutorial — Quiz 1" },
+        { label:"Tutorial Quiz 1", dueId:"ov-w5|PHYS242|quiz|PHYS 242 — Tutorial — Quiz 1", grade:90.83 },
         { label:"Tutorial Quiz 2", dueId:"ov-w9|PHYS242|quiz|PHYS 242 — Tutorial — Quiz 2" },
         { label:"Tutorial Quiz 3", dueId:"ov-w11|PHYS242|quiz|PHYS 242 — Tutorial — Quiz 3" },
       ]},
       { name:"Problem Sets", items:[
-        { label:"Problem Set 1", dueId:"due-w3-Mon-0" },
-        { label:"Problem Set 2", dueId:"due-w4-Mon-0" },
-        { label:"Problem Set 3", dueId:"due-w5-Mon-0" },
-        { label:"Problem Set 4", dueId:"due-w6-Mon-0" },
+        { label:"Problem Set 1", dueId:"due-w3-Mon-0", grade:100 },
+        { label:"Problem Set 2", dueId:"due-w4-Mon-0", grade:75 },
+        { label:"Problem Set 3", dueId:"due-w5-Mon-0", grade:0 },
+        { label:"Problem Set 4", dueId:"due-w6-Mon-0", grade:75 },
         { label:"Problem Set 5", dueId:"due-w9-Mon-0" },
         { label:"Problem Set 6", dueId:"due-w10-Mon-0" },
         { label:"Problem Set 7", dueId:"due-w11-Mon-0" },

@@ -237,7 +237,11 @@
     const cats = (GRADES[course]||[]).map((cat,ci)=>{
       const items = cat.items.map((raw,ii)=>{
         const id = course+"::"+ci+"::"+ii;
-        const grade = getGrade(id);
+        // A localStorage override always wins; otherwise fall back to the
+        // baked-in default grade (data.js GRADES[].items[].grade), which is
+        // how already-known real grades stay in sync across devices.
+        const stored = getGrade(id);
+        const grade = stored!=null ? stored : (raw.grade!=null ? raw.grade : null);
         const { label, weight, date } = resolveGradeItem(raw);
         return { id, label, weight, date, grade, status:gradeItemStatus(date, grade, !raw.dueId) };
       });
