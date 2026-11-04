@@ -304,11 +304,11 @@
       ], crunch:true },
 
     { id:"w8", label:"Wk 8 · Nov 2 ⚑", range:"Nov 2–8", dates:weekDates(2026,10,2),
-      note:"<b>Three graded items inside 3 days:</b> MATH 225 Quiz 4 (Nov 5) lands just two days before the <b>BIOL 102 Midterm (Sat Nov 7, 11am–1pm)</b>, plus the COGS 100 Memory Test (Nov 6 — window's been open since Oct 26). Saturday afternoon is recovery, not study time.",
+      note:"<b>Three graded items inside 3 days:</b> the COGS 100 Memory Test (Nov 2 — window's been open since Oct 26), MATH 225 Quiz 4 (Nov 5), and the <b>BIOL 102 Midterm (Sat Nov 7, 11am–1pm)</b>. Saturday afternoon is recovery, not study time.",
       due:{
+        Mon:[{text:"COGS 100 Memory Test due (window open since Oct 26)", weight:5}],
         Sat:[{text:"BIOL 102 MIDTERM · 11am–1pm", weight:20}],
         Fri:[
-          {text:"COGS 100 Memory Test due (window open since Oct 26)", weight:5},
           {text:"MATH 225 Assignment 7 due (ungraded practice)", weight:5, graded:false},
           {text:"MATH 112 Homework 7 due (ungraded)", weight:5, graded:false},
         ],
@@ -598,7 +598,7 @@
     "ov-w8|BIOL102|lab|BIOL 102 — Lab (Lab 3B)": [
       { text:"Review your Lab 3A pre-lab notes before this session", minutes:15 },
     ],
-    "due-w8-Fri-0": [
+    "due-w8-Mon-0": [
       { text:"Review the mental-representations / memory material this test builds on", minutes:25 },
       { text:"Complete the Memory Test — window's been open since Oct 26, don't leave it to the deadline", minutes:45 },
     ],
@@ -730,7 +730,7 @@
         { label:"Quiz 2", dueId:"ov-w11|COGS100|quiz|COGS 100 — Quiz 2" },
       ]},
       { name:"Assignments/Tutorial", items:[
-        { label:"Memory Test", dueId:"due-w8-Fri-0" },
+        { label:"Memory Test", dueId:"due-w8-Mon-0" },
         { label:"Finite State Machine and Logical Models", dueId:"due-w11-Fri-1" },
       ]},
       { name:"Final Exam", items:[
