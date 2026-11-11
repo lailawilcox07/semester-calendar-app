@@ -321,11 +321,10 @@
       crunch:true },
 
     { id:"w9", label:"Wk 9 · Nov 9", range:"Nov 9–15", dates:weekDates(2026,10,9),
-      note:"PHYS Quiz 2 (Wed tutorial) and BIOL Lecture Quiz 3 (due Fri) both fall this week — split flex time between them early.",
+      note:"PHYS Quiz 2 (Wed tutorial) falls this week.",
       due:{
         Mon:[{text:"PHYS 242 Problem Set 5 due", weight:2}],
         Fri:[
-          {text:"BIOL Lecture Quiz 3 due", weight:5},
           {text:"MATH 225 Assignment 8 due (ungraded practice)", weight:5, graded:false},
           {text:"MATH 112 Homework 8 due (ungraded)", weight:5, graded:false},
         ],
@@ -337,11 +336,12 @@
       ], crunch:false },
 
     { id:"w10", label:"Wk 10 · Nov 16", range:"Nov 16–22", dates:weekDates(2026,10,16),
-      note:"MATH 225 Quiz 5 lands the same day (Thu Nov 19) as BIOL Pre-Lab Quiz #4 — a real collision even though the week looks light otherwise. Good week to get ahead on MATH 112 / COGS 100 / PHYS review before Week 11.",
+      note:"MATH 225 Quiz 5 lands the same day (Thu Nov 19) as BIOL Pre-Lab Quiz #4 — a real collision even though the week looks light otherwise. BIOL Lecture Quiz 3 also opens this week (window Mon Nov 16 – Fri Nov 20).",
       due:{
         Mon:[{text:"PHYS 242 Problem Set 6 due", weight:2}],
         Thu:[{text:"BIOL Pre-Lab Quiz #4 due (Lab 4A)", weight:2}],
         Fri:[
+          {text:"BIOL Lecture Quiz 3 due (window open since Nov 16)", weight:5},
           {text:"MATH 225 Assignment 9 due (ungraded practice)", weight:5, graded:false},
           {text:"MATH 112 Homework 9 due (ungraded)", weight:5, graded:false},
         ],
@@ -608,7 +608,7 @@
       { text:"Blackbody radiation, Planck's Law (Wk7)", minutes:25 },
       { text:"Particle nature of light, Compton scattering (Wk8)", minutes:25 },
     ],
-    "due-w9-Fri-0": [
+    "due-w10-Fri-0": [
       { text:"Review DNA structure: nucleotides, the double helix, replication, telomeres", minutes:30 },
       { text:"Review gene expression at the molecular level: central dogma, transcription, RNA types, the genetic code, translation", minutes:35 },
       { text:"Practice questions on MasteringBiology", minutes:20 },
@@ -712,7 +712,7 @@
       { name:"Lecture Quizzes", items:[
         { label:"Lecture Quiz 1", dueId:"due-w3-Fri-0", grade:95 },
         { label:"Lecture Quiz 2", dueId:"due-w6-Fri-0", grade:100 },
-        { label:"Lecture Quiz 3", dueId:"due-w9-Fri-0" },
+        { label:"Lecture Quiz 3", dueId:"due-w10-Fri-0" },
         { label:"Lecture Quiz 4", dueId:"due-w12-Fri-0" },
       ]},
       { name:"DSMs", items:[
