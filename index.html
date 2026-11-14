@@ -563,7 +563,7 @@
     if(val) startedState[id]=true; else delete startedState[id];
     try{ localStorage.setItem(STARTED_KEY, JSON.stringify(startedState)); }catch(e){}
   }
-  function toggleStarted(id){ setStarted(id, !isStarted(id)); renderDue(); }
+  function toggleStarted(id){ setStarted(id, !isStarted(id)); refreshAll(); }
 
   // ---- grades store (localStorage) — keyed by "<course>::<catIdx>::<itemIdx>" ----
   const GRADES_KEY = "semcal-grades-v1";
@@ -768,7 +768,13 @@
     const toggle = document.getElementById("showUngraded");
     if(toggle) toggle.checked = showUngraded;
 
-    const visible = showUngraded ? DEADLINES : DEADLINES.filter(i=> i.graded!==false);
+    // Fixed study-plan items never carry forward on the To-Do tab — instead,
+    // once one slips past its own date and is still undone, it surfaces
+    // here as a catch-up flag (the real graded deadline it references, if
+    // any, is already tracked on this tab in its own right).
+    const today0 = new Date(); today0.setHours(0,0,0,0);
+    const overdueFixed = allFixedItems().filter(i=> i.date<today0 && !isDone(i.id));
+    const visible = (showUngraded ? DEADLINES : DEADLINES.filter(i=> i.graded!==false)).concat(overdueFixed);
     if(!visible.length){ el.innerHTML = `<div class="todo-empty">Nothing on the list.</div>`; return; }
 
     const undone = visible.filter(i=>!isDone(i.id)).sort((a,b)=>{
@@ -853,14 +859,129 @@
       ${tasks.map(t=> taskRowHtml(t,color)).join("")}
     </div>`;
   }
+  // ---- catch-up study plan (Update 2, Nov 14 afternoon): focus-day ids,
+  // the "fixed" hard-deadline items it carries, and the carry-forward rule
+  // for undone tasks ----
+  function fixedItemId(key,idx){ return "studyplan-fixed-"+key+"-"+idx; }
+  function taskItemId(key,idx){ return "studyplan-task-"+key+"-"+idx; }
+  function focusPlanEntries(){
+    return Object.keys(STUDY_PLAN)
+      .filter(k=> Array.isArray(STUDY_PLAN[k].tasks))
+      .sort()
+      .map(k=> ({ key:k, plan:STUDY_PLAN[k] }));
+  }
+  // Every `fixed` item across the whole plan, as a synthetic deadline-like
+  // object todoRowHtml()/resolveDeadlineDate() already know how to render —
+  // only pulled onto the Due tab once it's actually overdue (see renderDue).
+  function allFixedItems(){
+    const out = [];
+    focusPlanEntries().forEach(({key,plan})=>{
+      (plan.fixed||[]).forEach((f,idx)=>{
+        const [y,m,d] = f.date.split("-").map(Number);
+        out.push({ id:fixedItemId(key,idx), text:f.text, course:detectCourse(f.text),
+          weight:0, graded:false, kind:"task", date:new Date(y,m-1,d) });
+      });
+    });
+    return out;
+  }
+  // Undone tasks from earlier same-focus days, surfaced on the next
+  // same-focus day at or after today (today's own rendering only — this
+  // doesn't rewrite STUDY_PLAN or touch any other date's calendar blocks).
+  function getCarriedTasks(todayKey){
+    const entries = focusPlanEntries();
+    const todayEntry = entries.find(e=>e.key===todayKey);
+    if(!todayEntry || !todayEntry.plan.focus) return [];
+    const focus = todayEntry.plan.focus;
+    const sameFocus = entries.filter(e=> e.plan.focus===focus);
+    const currentOcc = sameFocus.find(e=> e.key>=todayKey) || sameFocus[sameFocus.length-1];
+    if(!currentOcc || currentOcc.key!==todayKey) return [];
+    const carried = [];
+    sameFocus.forEach(e=>{
+      if(e.key>=todayKey) return;
+      (e.plan.tasks||[]).forEach((t,i)=>{
+        const taskId = taskItemId(e.key,i);
+        if(!isDone(taskId)) carried.push({ taskId, text:t, fromKey:e.key });
+      });
+    });
+    return carried;
+  }
+  // Planned vs. done catch-up hours per course, from the focus-day plan:
+  // every day's full study-block time counts toward its focus course as
+  // "planned," prorated to "done" by the fraction of that day's tasks
+  // checked off. Only counts dates up to and including today.
+  function computeStudyPlanHours(){
+    const today = new Date(); today.setHours(0,0,0,0);
+    const out = {};
+    Object.keys(COURSE_NAMES).forEach(c=> out[c] = { plannedMin:0, doneMin:0 });
+    focusPlanEntries().forEach(({key,plan})=>{
+      if(!plan.focus) return;
+      const [y,m,d] = key.split("-").map(Number);
+      const planDate = new Date(y,m-1,d);
+      if(planDate>today) return;
+      const week = resolveWeekForDate(planDate);
+      if(!week) return;
+      const dayName = DAYS[(planDate.getDay()+6)%7];
+      const studyMin = buildDayBlocks(week, dayName).filter(b=>b[3]==="study")
+        .reduce((s,b)=> s + (toMin(b[1])-toMin(b[0])), 0);
+      const tasks = plan.tasks || [];
+      let doneCount = 0;
+      tasks.forEach((t,i)=>{ if(isDone(taskItemId(key,i))) doneCount++; });
+      const frac = tasks.length ? doneCount/tasks.length : 1;
+      out[plan.focus].plannedMin += studyMin;
+      out[plan.focus].doneMin += studyMin*frac;
+    });
+    return out;
+  }
+  function nextWeekendDate(fromDate){
+    const d = new Date(fromDate);
+    do{ d.setDate(d.getDate()+1); } while(d.getDay()!==0 && d.getDay()!==6);
+    return d;
+  }
+  function studyTaskRowHtml(taskId, text, color){
+    const done = isDone(taskId);
+    const started = !done && isStarted(taskId);
+    return `<label class="todo-row${done?" done":""}${started?" started":""}">
+      <input type="checkbox" data-taskid="${taskId}" ${done?"checked":""} style="accent-color:${color}">
+      <span class="todo-text" data-id="${taskId}">${text}</span>
+    </label>`;
+  }
   // Today's slice of the catch-up study plan (data.js STUDY_PLAN), as its
-  // own checkable group at the top of the To-Do tab — same done-state store
-  // as everything else, keyed "studyplan-<date>-<slot>".
+  // own checkable group at the top of the To-Do tab. Handles both plan
+  // shapes: the current one-focus-course-per-day format (with carry-forward
+  // + fixed items) and the original am/pm/eve slot format still in use for
+  // Dec 7 onward.
   function studyPlanTodayHtml(){
     const today = new Date(); today.setHours(0,0,0,0);
     const key = dateKey(today);
     const plan = STUDY_PLAN[key];
     if(!plan) return "";
+
+    if(Array.isArray(plan.tasks)){
+      const color = plan.focus ? "var(--"+(COURSE_COLOR[plan.focus]||"study")+")" : "var(--study)";
+      const carried = getCarriedTasks(key);
+      let rows = carried.map(c=>
+        studyTaskRowHtml(c.taskId, `Carried over from ${new Date(c.fromKey+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})} — ${c.text}`, color)
+      ).join("");
+      rows += plan.tasks.map((t,i)=> studyTaskRowHtml(taskItemId(key,i), t, color)).join("");
+      const fixedRows = (plan.fixed||[]).map((f,idx)=>
+        studyTaskRowHtml(fixedItemId(key,idx), f.text, "var(--muted)")
+      ).join("");
+      let suggestion = "";
+      if(carried.length>=2 && plan.focus){
+        const wd = nextWeekendDate(today);
+        const wdStr = wd.toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"});
+        suggestion = `<div class="todo-empty" style="padding:4px 4px 10px;">${carried.length} ${COURSE_NAMES[plan.focus]||plan.focus} tasks have piled up — consider using ${wdStr}'s open block to catch up.</div>`;
+      }
+      if(!rows && !fixedRows) return "";
+      const headLabel = plan.focus ? `${COURSE_NAMES[plan.focus]||plan.focus} — today's focus` : "Today";
+      return `<div class="task-group">
+        <div class="task-group-head" style="color:${color}"><span>${headLabel}</span></div>
+        ${rows}
+        ${suggestion}
+        ${fixedRows ? `<div class="task-group-head" style="color:var(--muted); font-size:11px; margin-top:8px;"><span>Also on your radar today</span></div>${fixedRows}` : ""}
+      </div>`;
+    }
+
     const rows = ["am","pm","eve"].filter(slot=> plan[slot]).map(slot=>{
       const entry = plan[slot];
       const taskId = "studyplan-"+key+"-"+slot;
@@ -915,6 +1036,17 @@
         if(item) toggleTask(item, Number(tIdx));
       });
     });
+    // Study-plan task rows: tapping the text (not the checkbox) marks it
+    // "partly done" (started) rather than done — same started/done split as
+    // the Due tab, same reason (so "I'm working on this" is distinct from
+    // "I finished this").
+    el.querySelectorAll(".todo-text[data-id]").forEach(span=>{
+      span.addEventListener("click", e=>{
+        e.preventDefault();
+        e.stopPropagation();
+        toggleStarted(span.dataset.id);
+      });
+    });
   }
 
   // ---- progress tab ----
@@ -925,6 +1057,7 @@
       const da = resolveDeadlineDate(a), db = resolveDeadlineDate(b);
       return (da?da.getTime():Infinity) - (db?db.getTime():Infinity);
     };
+    const hours = computeStudyPlanHours();
     el.innerHTML = courses.map(c=>{
       const all = DEADLINES.filter(i=>i.course===c);
       const graded = all.filter(i=>i.graded!==false).sort(byDate);
@@ -933,12 +1066,19 @@
       const pct = graded.length ? Math.round(doneCount/graded.length*100) : 0;
       const color = "var(--"+COURSE_COLOR[c]+")";
       const target = STUDY_PLAN_TARGETS[c];
+      const h = hours[c];
+      const plannedH = h.plannedMin/60, doneH = h.doneMin/60;
+      const behindH = plannedH - doneH;
+      const hoursLine = h.plannedMin>0
+        ? `<div class="course-subhead" style="margin-top:0;">Catch-up: ${doneH.toFixed(1)}h done / ${plannedH.toFixed(1)}h planned so far${target?` (target ~${target}h)`:""}${behindH>3?` · <span style="color:var(--flag); font-weight:700;">behind by ${behindH.toFixed(1)}h</span>`:""}</div>`
+        : "";
       return `<div class="course-card">
         <div class="course-head">
           <span class="course-name" style="color:${color}">${COURSE_NAMES[c]}</span>
-          <span class="course-count mono">${doneCount}/${graded.length} for marks${target?` · ~${target}h catch-up target`:""}</span>
+          <span class="course-count mono">${doneCount}/${graded.length} for marks</span>
         </div>
         <div class="course-bar-track"><div class="course-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+        ${hoursLine}
         <div class="course-items">${graded.map(i=>todoRowHtml(i,true)).join("")}</div>
         ${ungraded.length ? `<div class="course-subhead">Practice · ungraded</div>
         <div class="course-items">${ungraded.map(i=>todoRowHtml(i,true)).join("")}</div>` : ""}

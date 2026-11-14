@@ -174,15 +174,12 @@
     return newBlocks;
   }
 
-  // Splices the catch-up study plan (data.js STUDY_PLAN) onto a day's open
-  // "study"-category blocks: am -> first, eve -> last, pm -> whatever's in
-  // between. Fewer than 3 study blocks that day means the leftover slots
-  // (pm and/or eve) merge into the last one; a slot with no matching plan
-  // entry (or a date with no plan at all) leaves the block untouched.
-  function applyStudyPlan(blocks, date){
-    if(!date) return blocks;
-    const plan = STUDY_PLAN[dateKey(date)];
-    if(!plan) return blocks;
+  // Original slot-based plan (still used from Dec 7 onward): am -> first
+  // "study" block, eve -> last, pm -> whatever's in between. Fewer than 3
+  // study blocks that day means the leftover slots (pm and/or eve) merge
+  // into the last one; a slot with no matching plan entry leaves the block
+  // untouched.
+  function applySlotPlan(blocks, plan){
     const idxs = blocks.map((b,i)=> b[3]==="study" ? i : -1).filter(i=>i>=0);
     const n = idxs.length;
     if(!n) return blocks;
@@ -207,6 +204,42 @@
       if(courses.length===1) out[bi][6] = COURSE_COLOR[courses[0]];
     });
     return out;
+  }
+  // One-focus-course-per-day plan (Update 2, Nov 14 afternoon): every
+  // "study" block that day gets the focus course's color, and the day's
+  // `tasks` map onto those blocks in order. More blocks than tasks: the
+  // extra blocks just carry the course name, no task text. More tasks than
+  // blocks: the last block absorbs every remaining task, joined together.
+  // `fixed` items never touch the calendar — see getFixedItems() in
+  // index.html.
+  function applyFocusPlan(blocks, plan){
+    const idxs = blocks.map((b,i)=> b[3]==="study" ? i : -1).filter(i=>i>=0);
+    const n = idxs.length;
+    if(!n || !plan.focus) return blocks;
+    const tasks = plan.tasks || [];
+    const out = blocks.map(b=>b.slice());
+    const courseLabel = COURSE_NAMES[plan.focus] || plan.focus;
+    idxs.forEach((bi,pos)=>{
+      let label = courseLabel;
+      if(pos===n-1 && tasks.length>n){
+        const overflow = tasks.slice(pos).join(" · ");
+        if(overflow) label += " — " + overflow;
+      } else if(tasks[pos]){
+        label += " — " + tasks[pos];
+      }
+      out[bi][2] = label;
+      out[bi][6] = COURSE_COLOR[plan.focus];
+    });
+    return out;
+  }
+  // Dispatches to whichever plan shape data.js has for this date (see the
+  // comment above STUDY_PLAN). No date, or no plan for that date, or a
+  // quiz-day entry with no focus course: the blocks pass through untouched.
+  function applyStudyPlan(blocks, date){
+    if(!date) return blocks;
+    const plan = STUDY_PLAN[dateKey(date)];
+    if(!plan) return blocks;
+    return Array.isArray(plan.tasks) ? applyFocusPlan(blocks, plan) : applySlotPlan(blocks, plan);
   }
 
   function buildDayBlocks(week, day){
@@ -315,7 +348,7 @@
     toMin, fmt, dstr, dateKey, detectCourse, stripPart,
     buildDeadlines, resolveDeadlineDate, DEADLINES,
     periodStartFor, genericTasks, getTasks, leadDays, priorityScore,
-    spliceBlock, applyStudyPlan, buildDayBlocks, resolveWeekForDate,
+    spliceBlock, applyStudyPlan, applySlotPlan, applyFocusPlan, buildDayBlocks, resolveWeekForDate,
     resolveGradeItem, gradeItemStatus, computeCourseGrade,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = engine;

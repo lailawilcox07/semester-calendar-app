@@ -798,108 +798,128 @@
     ],
   };
 
-  // ---- catch-up study plan: assigns a course + task to specific calendar
+  // ---- catch-up study plan: assigns course(s)/task(s) to specific calendar
   // dates' open study blocks (buildDayBlocks splices these in — see
-  // applyStudyPlan() in engine.js). Keyed by "YYYY-MM-DD". Each date holds up
-  // to three slots (am/pm/eve), mapped onto that day's "study"-category
-  // blocks in time order. Cells that just restate an exam/quiz/class event
-  // already on the calendar (e.g. "MATH 225 FINAL 2-5", "Rest") are
-  // deliberately left out — nothing to assign there.
+  // applyStudyPlan() in engine.js). Keyed by "YYYY-MM-DD". Two entry shapes
+  // coexist here:
+  //   - Nov 14 - Dec 6: { focus, tasks, fixed } — one focus course for the
+  //     whole day (Update 2). See applyFocusPlan() in engine.js.
+  //   - Dec 7 onward: { am, pm, eve } — up to three slots mapped onto that
+  //     day's study blocks in time order (original plan, left as-is per the
+  //     update brief). See applySlotPlan() in engine.js.
+  // Cells that just restate an exam/quiz/class event already on the
+  // calendar (e.g. "MATH 225 FINAL 2-5", "Rest") are deliberately left out.
   const STUDY_PLAN = {
-    // Phase A: Nov 14-19 — MATH 225 Quiz 5 + BIOL Lecture Quiz 3
-    "2026-11-14": {
-      am:{course:"MATH225", task:"Laplace basics, transform table, Assignment 8"},
-      pm:{course:"BIOL102", task:"DNA structure + replication (Ch 16, Regan slides)"},
-    },
-    "2026-11-15": {
-      am:{course:"BIOL102", task:"DSMs 16–17 (grace ends Tue Nov 17)"},
-      pm:{course:"PHYS242", task:"Problem Set 6 (due Mon)"},
-      eve:{course:"MATH225", task:"Partial fractions, Assignment 9"},
-    },
-    "2026-11-16": {
-      am:{course:"MATH225", task:"Laplace IVPs, mixed practice"},
-      pm:{course:"BIOL102", task:"Transcription + translation (Ch 17)"},
-      eve:{course:"COGS100", task:"U03 logic + rules slides"},
-    },
-    "2026-11-17": {
-      am:{course:"MATH225", task:"Timed practice: textbook 7.5 problems"},
-      pm:{course:"BIOL102", task:"Write Lecture Quiz 3"},
-      eve:{course:"PHYS242", task:"W8 blackbody + Planck"},
-    },
-    "2026-11-18": {
-      am:{course:"MATH225", task:"Formula list drill + quick redo of Quiz 4"},
-      eve:{course:"MATH225", task:"Light final check"},
-    },
-    "2026-11-19": {
-      am:{course:"COGS100", task:"U03 concepts + analogy"},
-    },
-    // Phase B: Nov 20-26 — PHYS Quiz 3, MATH 112 Quiz 3, COGS Quiz 2
-    "2026-11-20": {
-      am:{course:"COGS100", task:"U03 imagery, connections, mental models"},
-    },
-    "2026-11-21": {
-      am:{course:"MATH112", task:"HW5 cold, in writing"},
-      pm:{course:"MATH112", task:"HW6 cold, check vs solutions"},
-    },
-    "2026-11-22": {
-      am:{course:"BIOL102", task:"Pre-lab/DSM catch-up"},
-      pm:{course:"PHYS242", task:"W9 Compton + Bohr; Problem Set 7"},
-      eve:{course:"COGS100", task:"U04 vision/attention"},
-    },
-    "2026-11-23": {
-      am:{course:"PHYS242", task:"W10 matter waves + uncertainty"},
-      pm:{course:"COGS100", task:"U04 memory"},
-      eve:{course:"MATH112", task:"Ch 8 notes: kernel, image, rank–nullity"},
-    },
-    "2026-11-24": {
-      am:{course:"PHYS242", task:"Quiz-style problems W8–W10"},
-      pm:{course:"MATH112", task:"Redo HW5/6 mistakes"},
-      eve:{course:"COGS100", task:"Explain-it-back on all Unit 3"},
-    },
-    "2026-11-25": {
-      am:{course:"MATH112", task:"Timed mock quiz"},
-      eve:{course:"COGS100", task:"Full Quiz 2 review"},
-    },
-    // Phase C: Nov 27-Dec 6 — rebuild MATH 225, Quiz 6, early reviews
-    "2026-11-28": {
-      am:{course:"MATH225", task:"First-order ODEs: linear, separable (text 5.2–5.4, A1–A2)"},
-      pm:{course:"MATH225", task:"Exact + integrating factors (5.5, A3–A4)"},
-    },
-    "2026-11-29": {
-      am:{course:"BIOL102", task:"DSMs 18, 20"},
-      pm:{course:"PHYS242", task:"Problem Set 8"},
-      eve:{course:"MATH225", task:"Complex numbers + char. polynomial (1.2, 6.4, A5)"},
-    },
-    "2026-11-30": {
-      am:{course:"MATH225", task:"Undetermined coefficients (6.5, A6–A7)"},
-      pm:{course:"BIOL102", task:"Latest Regan lectures"},
-      eve:{course:"MATH225", task:"Systems + eigenvalues (9.4)"},
-    },
-    "2026-12-01": {
-      am:{course:"MATH225", task:"Assignments 10–11"},
-      pm:{course:"BIOL102", task:"Practice questions"},
-      eve:{course:"PHYS242", task:"W11 Schrödinger intro"},
-    },
-    "2026-12-02": {
-      am:{course:"MATH225", task:"Quiz 6 timed practice"},
-      eve:{course:"BIOL102", task:"Lecture Quiz 4 prep"},
-    },
-    "2026-12-03": {
-      am:{course:"COGS100", task:"Catch up latest slides"},
-    },
-    "2026-12-04": {
-      am:{course:"BIOL102", task:"Write Lecture Quiz 4"},
-    },
-    "2026-12-05": {
-      am:{course:"COGS100", task:"Units 1–2 full pass"},
-      pm:{course:"PHYS242", task:"Relativity W1–5 review"},
-    },
-    "2026-12-06": {
-      am:{course:"PHYS242", task:"Redo midterm under time"},
-      pm:{course:"MATH112", task:"Ch 1–5 quiz-style redo"},
-      eve:{course:"BIOL102", task:"DSMs 19, 14, 15"},
-    },
-    // Phase D: Dec 7-22 — finals
+    // Nov 14 - Dec 6: one focus course per day (Update 2, Nov 14 afternoon —
+    // Laila is learning this material from scratch and focuses best on one
+    // course at a time, not splitting a day three ways). `tasks` map onto
+    // that day's actual study blocks in order, via applyFocusPlan() in
+    // engine.js — overflow merges into the last block. `fixed` are small
+    // hard-deadline reminders from another course; they don't touch the
+    // calendar, they're tracked separately (see getFixedItems() in
+    // index.html) and surfaced on the Due tab only once overdue.
+    "2026-11-14": { focus:"MATH225", tasks:[
+      "Laplace transform: definition, table, solving IVPs",
+      "Assignment 8",
+    ], fixed:[] },
+    "2026-11-15": { focus:"PHYS242", tasks:[
+      "Weeks 7–8: EM waves wrap-up, blackbody radiation, Planck's law",
+    ], fixed:[
+      { text:"PHYS Problem Set 6 (due Mon)", date:"2026-11-16" },
+      { text:"BIOL DSMs 16–17 (grace ends Tue)", date:"2026-11-17" },
+    ] },
+    "2026-11-16": { focus:"BIOL102", tasks:[
+      "Regan weeks 7–9: DNA structure, replication, transcription, translation, splicing",
+    ], fixed:[
+      { text:"Start BIOL Lecture Quiz 3", date:"2026-11-20" },
+    ] },
+    "2026-11-17": { focus:"MATH225", tasks:[
+      "Partial fractions",
+      "Assignment 9",
+      "Textbook 7.5 problems",
+    ], fixed:[
+      { text:"Finish BIOL Lecture Quiz 3 if not done", date:"2026-11-20" },
+    ] },
+    "2026-11-18": { focus:"MATH225", tasks:[
+      "Timed quiz practice",
+      "Memorise the Laplace formula list",
+    ], fixed:[] },
+    "2026-11-19": { focus:"COGS100", tasks:[
+      "Unit 3 part 1: logic, rules, concepts, analogy",
+    ], fixed:[
+      { text:"MATH 225 Quiz 5 (4:30 PM tutorial)", date:"2026-11-19" },
+    ] },
+    "2026-11-20": { focus:"COGS100", tasks:[
+      "Unit 3 part 2: imagery, connections, mental models",
+      "Unit 4: vision, attention, memory",
+    ], fixed:[] },
+    "2026-11-21": { focus:"MATH112", tasks:[
+      "Notes Ch 1–5: systems, subspaces, span, independence",
+      "Redo HW1–2",
+    ], fixed:[] },
+    "2026-11-22": { focus:"PHYS242", tasks:[
+      "Weeks 9–10: Compton scattering, Bohr model, matter waves, uncertainty principle",
+    ], fixed:[
+      { text:"PHYS Problem Set 7 (due Mon)", date:"2026-11-23" },
+    ] },
+    "2026-11-23": { focus:"MATH112", tasks:[
+      "Notes Ch 6–8: RREF, bases, linear maps, kernel, image, rank–nullity",
+      "HW5–6 cold",
+    ], fixed:[] },
+    "2026-11-24": { focus:"PHYS242", tasks:[
+      "Quiz-style problems, weeks 7–10",
+    ], fixed:[] },
+    "2026-11-25": { focus:"MATH112", tasks:[
+      "Timed mock quiz on HW5–6",
+      "Fix mistakes",
+    ], fixed:[
+      { text:"PHYS Quiz 3 (tutorial)", date:"2026-11-25" },
+      { text:"Evening: 1 h COGS Quiz 2 review", date:"2026-11-25" },
+    ] },
+    "2026-11-26": { focus:null, tasks:[], fixed:[
+      { text:"MATH 112 Quiz 3", date:"2026-11-26" },
+      { text:"COGS 100 Quiz 2", date:"2026-11-26" },
+    ] },
+    "2026-11-27": { focus:"COGS100", tasks:[
+      "Tutorial + Finite State Machine assignment",
+    ], fixed:[] },
+    "2026-11-28": { focus:"MATH225", tasks:[
+      "Weeks 1–4: first-order linear, separable, exact, integrating factors (text 5.2–5.5, A1–A4)",
+    ], fixed:[
+      { text:"BIOL DSMs 18, 20", date:"2026-11-28" },
+    ] },
+    "2026-11-29": { focus:"MATH225", tasks:[
+      "Weeks 5–7: complex numbers, constant-coefficient ODEs, undetermined coefficients (text 1.2, 6.4, 6.5, A5–A7)",
+    ], fixed:[
+      { text:"PHYS Problem Set 8 (due Mon)", date:"2026-11-30" },
+    ] },
+    "2026-11-30": { focus:"MATH225", tasks:[
+      "Systems of ODEs, eigenvalues, matrix exponential (text 9.4, A10–A11)",
+    ], fixed:[] },
+    "2026-12-01": { focus:"BIOL102", tasks:[
+      "Newest Regan lectures + all practice questions",
+    ], fixed:[] },
+    "2026-12-02": { focus:"MATH225", tasks:[
+      "Quiz 6 timed practice",
+    ], fixed:[] },
+    "2026-12-03": { focus:"PHYS242", tasks:[
+      "Relativity weeks 1–3: frames, Galilean relativity, postulates, time dilation, length contraction",
+    ], fixed:[
+      { text:"MATH 225 Quiz 6 (tutorial)", date:"2026-12-03" },
+    ] },
+    "2026-12-04": { focus:"BIOL102", tasks:[
+      "Write Lecture Quiz 4",
+    ], fixed:[
+      { text:"BIOL DSMs 19, 14, 15 (due Sat)", date:"2026-12-05" },
+    ] },
+    "2026-12-05": { focus:"COGS100", tasks:[
+      "Units 1–2 (weeks 1–5) full pass",
+    ], fixed:[] },
+    "2026-12-06": { focus:"PHYS242", tasks:[
+      "Relativity weeks 4–6: Lorentz transforms, intervals, Doppler, momentum and energy",
+      "Redo midterm",
+    ], fixed:[] },
+    // Phase D: Dec 7-22 — finals (unchanged — old am/pm/eve slot format)
     "2026-12-07": {
       am:{course:"MATH225", task:"All past quizzes, timed"},
       pm:{course:"MATH112", task:"Ch 6–8"},
@@ -964,10 +984,11 @@
     },
   };
 
-  // Rough catch-up hour totals per course (from the Nov 14 update brief),
-  // shown as a target on the Progress tab — not derived from STUDY_PLAN,
-  // just the planning estimate behind it.
-  const STUDY_PLAN_TARGETS = { MATH225:22, PHYS242:16, COGS100:14, MATH112:11, BIOL102:9 };
+  // Rough catch-up hour totals per course (Update 2, Nov 14 afternoon —
+  // revised up once the plan switched to one-focus-course-per-day, total
+  // ~136h), shown as a target on the Progress tab — not derived from
+  // STUDY_PLAN, just the planning estimate behind it.
+  const STUDY_PLAN_TARGETS = { MATH225:38, PHYS242:33, MATH112:28, COGS100:23, BIOL102:14 };
 
   const data = { base, noClassDay, weeks, examDates, COURSE_NAMES, COURSE_COLOR, FINAL_WEIGHT, WEEKLY_HABITS, DAILY_HABITS, TASKS, GRADES, STUDY_PLAN, STUDY_PLAN_TARGETS };
   if (typeof module !== "undefined" && module.exports) module.exports = data;
