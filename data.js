@@ -310,7 +310,6 @@
         Sat:[{text:"BIOL 102 MIDTERM · 11am–1pm", weight:20}],
         Fri:[
           {text:"MATH 225 Assignment 7 due (ungraded practice)", weight:5, graded:false},
-          {text:"MATH 112 Homework 7 due (ungraded)", weight:5, graded:false},
         ],
       },
       overrides:[
@@ -326,7 +325,6 @@
         Mon:[{text:"PHYS 242 Problem Set 5 due", weight:2}],
         Fri:[
           {text:"MATH 225 Assignment 8 due (ungraded practice)", weight:5, graded:false},
-          {text:"MATH 112 Homework 8 due (ungraded)", weight:5, graded:false},
         ],
         Sat:[{text:"BIOL DSMs 16–17 due", weight:0.76}],
       },
@@ -343,7 +341,6 @@
         Fri:[
           {text:"BIOL Lecture Quiz 3 due (window open since Nov 16)", weight:5},
           {text:"MATH 225 Assignment 9 due (ungraded practice)", weight:5, graded:false},
-          {text:"MATH 112 Homework 9 due (ungraded)", weight:5, graded:false},
         ],
       },
       overrides:[
@@ -359,7 +356,6 @@
           {text:"COGS 100 tutorial (time TBC)", weight:0},
           {text:"COGS 100 Finite State Machine and Logical Models due (same day, no separate window)", weight:5},
           {text:"MATH 225 Assignment 10 due (ungraded practice)", weight:5, graded:false},
-          {text:"MATH 112 Homework 10 due (ungraded)", weight:5, graded:false},
         ],
         Sat:[{text:"BIOL DSMs 18,20 due", weight:0.76}],
       },
@@ -377,7 +373,6 @@
         Fri:[
           {text:"BIOL Lecture Quiz 4 due", weight:5},
           {text:"MATH 225 Assignment 11 due (ungraded practice)", weight:5, graded:false},
-          {text:"MATH 112 Homework 11 due (ungraded)", weight:5, graded:false},
         ],
         Sat:[{text:"BIOL DSMs 19,14,15 due", weight:1.14}],
       },
@@ -385,6 +380,15 @@
         {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 6", weight:10},
         {day:"Thu", match:"BIOL 102 — Lab", cancel:true},
       ], crunch:false },
+
+    { id:"w13", label:"Study week · Dec 7", range:"Dec 7–13", dates:weekDates(2026,11,7), noClasses:true,
+      note:"No classes except a <b>PHYS 242 extra review session</b> Tue Dec 8 — one hour in the lecture slot, one hour in the tutorial slot, run on the Wednesday schedule. Otherwise fully open for exam prep — see the catch-up plan for each day's focus.",
+      due:{}, overrides:[],
+      dayOverrides:[
+        {day:"Tue", start:"12:20", end:"13:20", label:"PHYS 242 — Review Session (Lecture slot)", cat:"class", location:"Stirling Hall AUD"},
+        {day:"Tue", start:"14:20", end:"15:20", label:"PHYS 242 — Review Session (Tutorial slot)", cat:"class", location:"Mackintosh-Corry Hall B201"},
+      ],
+      crunch:true },
 
     { id:"examwk1", label:"Exam Period · Dec 14", range:"Dec 14–20", dates:weekDates(2026,11,14), noClasses:true,
       note:"<b>BIOL 102 Final</b> Wed Dec 16, 9–11am. <b>MATH 225 Final</b> Fri Dec 18, 2–5pm (60% final weight — top priority). <b>MATH 112 Final</b> Sat Dec 19, 9am–12pm (55% final weight + the 38% pass floor).",
@@ -520,24 +524,26 @@
       { text:"Quick review of Quiz 1 topics, since the rolling-window rule means some overlap", minutes:15 },
     ],
     "ov-w6|MATH225|quiz|MATH 225 — Tutorial — Quiz 3": [
-      { text:"Review linear higher-order equations (next technique after exact equations) — inferred sequencing, confirm against your actual notes", minutes:30 },
-      { text:"Redo the relevant assignment(s) posted since Quiz 2", minutes:40 },
-      { text:"Quick review of Quiz 1–2 topics, since the rolling-window rule means some overlap", minutes:15 },
+      { text:"Review exact equations and integrating factors", minutes:25 },
+      { text:"Review constant-coefficient homogeneous ODEs with distinct real roots", minutes:25 },
+      { text:"Redo the relevant assignment(s) posted since Quiz 2", minutes:30 },
     ],
     "ov-w8|MATH225|quiz|MATH 225 — Tutorial — Quiz 4": [
-      { text:"Review linear vector systems (next technique after linear higher-order equations) — inferred sequencing, confirm against your actual notes", minutes:30 },
-      { text:"Redo the relevant assignment(s) posted since Quiz 3", minutes:40 },
-      { text:"Quick review of Quiz 2–3 topics, since the rolling-window rule means some overlap", minutes:15 },
+      { text:"Review complex numbers", minutes:15 },
+      { text:"Review general constant-coefficient homogeneous ODEs", minutes:25 },
+      { text:"Review the method of undetermined coefficients", minutes:25 },
+      { text:"Redo the relevant assignment(s) posted since Quiz 3", minutes:30 },
     ],
     "ov-w10|MATH225|quiz|MATH 225 — Tutorial — Quiz 5": [
-      { text:"Review Laplace transforms (next learning outcome after solution techniques) — inferred sequencing, confirm against your actual notes", minutes:30 },
-      { text:"Redo the relevant assignment(s) posted since Quiz 4", minutes:40 },
-      { text:"Quick review of Quiz 3–4 topics, since the rolling-window rule means some overlap", minutes:15 },
+      { text:"Laplace transform: definition and basic properties", minutes:25 },
+      { text:"Solving homogeneous and inhomogeneous constant-coefficient ODEs via Laplace transform, partial fractions (not repeated complex roots)", minutes:40 },
+      { text:"Memorise the formula list from the onQ announcement \"What you are expected to memorise about the Laplace transform\" (Nov 5)", minutes:20 },
+      { text:"Practice: Assignments 8 and 9, textbook 7.3–7.5", minutes:40 },
     ],
     "ov-w12|MATH225|quiz|MATH 225 — Tutorial — Quiz 6": [
-      { text:"Review modelling / interpretation (the applied capstone learning outcome) — inferred sequencing, confirm against your actual notes", minutes:30 },
-      { text:"Redo the relevant assignment(s) posted since Quiz 5", minutes:40 },
-      { text:"Quick review of Quiz 4–5 topics, since the rolling-window rule means some overlap", minutes:15 },
+      { text:"Review systems of linear ODEs: definitions and basic properties", minutes:25 },
+      { text:"Review eigenvalues and eigenvectors", minutes:30 },
+      { text:"Practice: Assignments 9–11, textbook 9.4", minutes:40 },
     ],
     "ov-w5|PHYS242|quiz|PHYS 242 — Tutorial — Quiz 1": [
       { text:"Review Einstein's Postulates, time dilation, length contraction, simultaneity (Week 3)", minutes:25 },
@@ -609,8 +615,8 @@
       { text:"Particle nature of light, Compton scattering (Wk8)", minutes:25 },
     ],
     "due-w10-Fri-0": [
-      { text:"Review DNA structure: nucleotides, the double helix, replication, telomeres", minutes:30 },
-      { text:"Review gene expression at the molecular level: central dogma, transcription, RNA types, the genetic code, translation", minutes:35 },
+      { text:"Review DNA structure and replication (Ch 16): nucleotides, the double helix, replication, telomeres", minutes:30 },
+      { text:"Review transcription and translation (Ch 17): central dogma, RNA types, the genetic code", minutes:35 },
       { text:"Practice questions on MasteringBiology", minutes:20 },
     ],
     "due-w9-Sat-0": [
@@ -626,15 +632,13 @@
     ],
     "ov-w11|MATH112|quiz|MATH 112 — Quiz 3": [
       { text:"Get a head start during Week 10 if you can: skim Homework Sets 5–6", minutes:30 },
-      { text:"Redo Homework Sets 5 and 6 fully — \"mainly from homework sets 5 and 6\" per the syllabus", minutes:60 },
-      { text:"Review Week 9–11 course notes", minutes:30 },
+      { text:"Redo Homework Sets 5 and 6 fully — mainly covers kernel/image, rank–nullity, composition, matrix multiplication", minutes:60 },
+      { text:"Review Week 9–11 course notes on the above topics", minutes:30 },
     ],
     "ov-w11|COGS100|quiz|COGS 100 — Quiz 2": [
-      { text:"Get a head start during Week 10 if you can: skim Weeks 8–10 topics", minutes:30 },
-      { text:"Mental models and mental processes, logic / Wason Card example (Wk8)", minutes:20 },
-      { text:"Memory and vision (Wk9)", minutes:20 },
-      { text:"Problem solving, decision making, social behaviour (Wk10)", minutes:20 },
-      { text:"Cognitive modeling: simulating mental processes, logic programming, neural networks (Wk11)", minutes:20 },
+      { text:"Unit 3: logic, rules, concepts, analogy, imagery, connections, mental models", minutes:35 },
+      { text:"Unit 4 so far: vision / object recognition / attention", minutes:25 },
+      { text:"Unit 4 so far: memory", minutes:25 },
     ],
     "ov-w11|BIOL102|lab|BIOL 102 — Lab (Lab 4B)": [
       { text:"Review your Lab 4A pre-lab notes before this session", minutes:15 },
@@ -662,22 +666,24 @@
       { text:"Extra focus on Weeks 7–12 material, per the syllabus's own emphasis", minutes:60 },
     ],
     "final-MATH225": [
-      { text:"Review classification of ODE types", minutes:20 },
-      { text:"Review solution techniques: scalar first-order, linear higher-order, linear vector systems", minutes:60 },
-      { text:"Review Laplace transforms", minutes:40 },
-      { text:"Review modelling / interpretation — likely the most exam-worthy since it's the applied capstone skill", minutes:40 },
+      { text:"Review first-order ODEs: linear, separable, exact, integrating factors", minutes:40 },
+      { text:"Review complex numbers and constant-coefficient linear ODEs, including undetermined coefficients", minutes:40 },
+      { text:"Review the Laplace transform and partial fractions", minutes:40 },
+      { text:"Review systems of linear ODEs, eigenvalues, and the matrix exponential", minutes:40 },
     ],
     "final-COGS100": [
-      { text:"Comprehensive review across all 12 weeks / 5 units", minutes:90 },
-      { text:"Extra weight on Unit 5 (cognitive architecture, AGI) as the most recent material", minutes:40 },
+      { text:"Full pass on Units 1–2 (60% of the final is multiple choice/fill-in across the whole course — Quiz 1's 72.5% showed these are the weak spot)", minutes:50 },
+      { text:"Comprehensive review across all 12 weeks / 5 units for the multiple-choice/fill-in portion", minutes:60 },
+      { text:"Short-answer and long-answer practice (40% of the final combined) — both drawn from Units 3–5 specifically", minutes:60 },
     ],
     "final-PHYS242": [
       { text:"Comprehensive review of relativity (Weeks 1–6)", minutes:60 },
       { text:"Comprehensive review of quantum theory (Weeks 7–12) — the midterm already tested relativity once, don't under-review it just because it's \"done\"", minutes:60 },
+      { text:"Note: the photoelectric effect is NOT assessed. For Compton scattering, understand the derivation method rather than memorising it", minutes:15 },
     ],
     "final-BIOL102": [
-      { text:"Review all of Dr. Regan's material — Weeks 7–12, genetics", minutes:90 },
-      { text:"Review lab-related questions — Dr. Yates's material was fully covered by the midterm and isn't retested", minutes:30 },
+      { text:"Review all of Dr. Regan's material — Weeks 7–12, genetics (Dr. Yates's Weeks 1–6 material was the midterm and isn't retested)", minutes:90 },
+      { text:"Review the Academic Integrity portion of Academics 101 — it reappears on the final", minutes:15 },
     ],
   };
 
@@ -744,7 +750,7 @@
     MATH112: [
       { name:"Quizzes", items:[
         { label:"Quiz 1", dueId:"due-w4-Thu-0", grade:90.83 },
-        { label:"Quiz 2", dueId:"ov-w6|MATH112|quiz|MATH 112 — Quiz 2" },
+        { label:"Quiz 2", dueId:"ov-w6|MATH112|quiz|MATH 112 — Quiz 2", grade:81.67 },
         { label:"Quiz 3", dueId:"ov-w11|MATH112|quiz|MATH 112 — Quiz 3" },
       ]},
       { name:"Final Exam", items:[
@@ -791,7 +797,178 @@
     ],
   };
 
-  const data = { base, noClassDay, weeks, examDates, COURSE_NAMES, COURSE_COLOR, FINAL_WEIGHT, WEEKLY_HABITS, DAILY_HABITS, TASKS, GRADES };
+  // ---- catch-up study plan: assigns a course + task to specific calendar
+  // dates' open study blocks (buildDayBlocks splices these in — see
+  // applyStudyPlan() in engine.js). Keyed by "YYYY-MM-DD". Each date holds up
+  // to three slots (am/pm/eve), mapped onto that day's "study"-category
+  // blocks in time order. Cells that just restate an exam/quiz/class event
+  // already on the calendar (e.g. "MATH 225 FINAL 2-5", "Rest") are
+  // deliberately left out — nothing to assign there.
+  const STUDY_PLAN = {
+    // Phase A: Nov 14-19 — MATH 225 Quiz 5 + BIOL Lecture Quiz 3
+    "2026-11-14": {
+      am:{course:"MATH225", task:"Laplace basics, transform table, Assignment 8"},
+      pm:{course:"BIOL102", task:"DNA structure + replication (Ch 16, Regan slides)"},
+    },
+    "2026-11-15": {
+      am:{course:"BIOL102", task:"DSMs 16–17 (grace ends Tue Nov 17)"},
+      pm:{course:"PHYS242", task:"Problem Set 6 (due Mon)"},
+      eve:{course:"MATH225", task:"Partial fractions, Assignment 9"},
+    },
+    "2026-11-16": {
+      am:{course:"MATH225", task:"Laplace IVPs, mixed practice"},
+      pm:{course:"BIOL102", task:"Transcription + translation (Ch 17)"},
+      eve:{course:"COGS100", task:"U03 logic + rules slides"},
+    },
+    "2026-11-17": {
+      am:{course:"MATH225", task:"Timed practice: textbook 7.5 problems"},
+      pm:{course:"BIOL102", task:"Write Lecture Quiz 3"},
+      eve:{course:"PHYS242", task:"W8 blackbody + Planck"},
+    },
+    "2026-11-18": {
+      am:{course:"MATH225", task:"Formula list drill + quick redo of Quiz 4"},
+      eve:{course:"MATH225", task:"Light final check"},
+    },
+    "2026-11-19": {
+      am:{course:"COGS100", task:"U03 concepts + analogy"},
+    },
+    // Phase B: Nov 20-26 — PHYS Quiz 3, MATH 112 Quiz 3, COGS Quiz 2
+    "2026-11-20": {
+      am:{course:"COGS100", task:"U03 imagery, connections, mental models"},
+    },
+    "2026-11-21": {
+      am:{course:"MATH112", task:"HW5 cold, in writing"},
+      pm:{course:"MATH112", task:"HW6 cold, check vs solutions"},
+    },
+    "2026-11-22": {
+      am:{course:"BIOL102", task:"Pre-lab/DSM catch-up"},
+      pm:{course:"PHYS242", task:"W9 Compton + Bohr; Problem Set 7"},
+      eve:{course:"COGS100", task:"U04 vision/attention"},
+    },
+    "2026-11-23": {
+      am:{course:"PHYS242", task:"W10 matter waves + uncertainty"},
+      pm:{course:"COGS100", task:"U04 memory"},
+      eve:{course:"MATH112", task:"Ch 8 notes: kernel, image, rank–nullity"},
+    },
+    "2026-11-24": {
+      am:{course:"PHYS242", task:"Quiz-style problems W8–W10"},
+      pm:{course:"MATH112", task:"Redo HW5/6 mistakes"},
+      eve:{course:"COGS100", task:"Explain-it-back on all Unit 3"},
+    },
+    "2026-11-25": {
+      am:{course:"MATH112", task:"Timed mock quiz"},
+      eve:{course:"COGS100", task:"Full Quiz 2 review"},
+    },
+    // Phase C: Nov 27-Dec 6 — rebuild MATH 225, Quiz 6, early reviews
+    "2026-11-28": {
+      am:{course:"MATH225", task:"First-order ODEs: linear, separable (text 5.2–5.4, A1–A2)"},
+      pm:{course:"MATH225", task:"Exact + integrating factors (5.5, A3–A4)"},
+    },
+    "2026-11-29": {
+      am:{course:"BIOL102", task:"DSMs 18, 20"},
+      pm:{course:"PHYS242", task:"Problem Set 8"},
+      eve:{course:"MATH225", task:"Complex numbers + char. polynomial (1.2, 6.4, A5)"},
+    },
+    "2026-11-30": {
+      am:{course:"MATH225", task:"Undetermined coefficients (6.5, A6–A7)"},
+      pm:{course:"BIOL102", task:"Latest Regan lectures"},
+      eve:{course:"MATH225", task:"Systems + eigenvalues (9.4)"},
+    },
+    "2026-12-01": {
+      am:{course:"MATH225", task:"Assignments 10–11"},
+      pm:{course:"BIOL102", task:"Practice questions"},
+      eve:{course:"PHYS242", task:"W11 Schrödinger intro"},
+    },
+    "2026-12-02": {
+      am:{course:"MATH225", task:"Quiz 6 timed practice"},
+      eve:{course:"BIOL102", task:"Lecture Quiz 4 prep"},
+    },
+    "2026-12-03": {
+      am:{course:"COGS100", task:"Catch up latest slides"},
+    },
+    "2026-12-04": {
+      am:{course:"BIOL102", task:"Write Lecture Quiz 4"},
+    },
+    "2026-12-05": {
+      am:{course:"COGS100", task:"Units 1–2 full pass"},
+      pm:{course:"PHYS242", task:"Relativity W1–5 review"},
+    },
+    "2026-12-06": {
+      am:{course:"PHYS242", task:"Redo midterm under time"},
+      pm:{course:"MATH112", task:"Ch 1–5 quiz-style redo"},
+      eve:{course:"BIOL102", task:"DSMs 19, 14, 15"},
+    },
+    // Phase D: Dec 7-22 — finals
+    "2026-12-07": {
+      am:{course:"MATH225", task:"All past quizzes, timed"},
+      pm:{course:"MATH112", task:"Ch 6–8"},
+    },
+    "2026-12-08": {
+      am:{course:"MATH112", task:"Proof-writing drill"},
+      pm:{course:"PHYS242", task:"Extra-day lecture + review"},
+      eve:{course:"BIOL102", task:"Regan slides pass 1"},
+    },
+    "2026-12-09": {
+      am:{course:"BIOL102", task:"Regan slides pass 2 + all practice Qs"},
+      pm:{course:"MATH225", task:"Mixed assignment problems"},
+    },
+    "2026-12-10": {
+      am:{course:"MATH112", task:"Full mock exam (3 h)"},
+      pm:{course:"COGS100", task:"Units 3–5"},
+    },
+    "2026-12-11": {
+      am:{course:"MATH225", task:"Full mock exam (3 h)"},
+      pm:{course:"PHYS242", task:"Quantum W7–12"},
+    },
+    "2026-12-12": {
+      am:{course:"BIOL102", task:"Weak spots"},
+      pm:{course:"MATH112", task:"Weak spots"},
+    },
+    "2026-12-13": {
+      am:{course:"COGS100", task:"Long-answer practice (Units 3–5)"},
+      pm:{course:"MATH225", task:"Weak spots"},
+    },
+    "2026-12-14": {
+      am:{course:"BIOL102", task:"Full review + Academic Integrity material"},
+      pm:{course:"MATH225", task:"Laplace + systems"},
+    },
+    "2026-12-15": {
+      am:{course:"BIOL102", task:"Light review only"},
+      pm:{course:"MATH225", task:"First-order + higher-order"},
+    },
+    "2026-12-16": {
+      pm:{course:"MATH225", task:"Review"},
+      eve:{course:"MATH225", task:"Review"},
+    },
+    "2026-12-17": {
+      am:{course:"MATH225", task:"Mock exam"},
+      pm:{course:"MATH225", task:"Review errors"},
+      eve:{course:"MATH112", task:"Light"},
+    },
+    "2026-12-18": {
+      am:{course:"MATH225", task:"Formula drill"},
+      eve:{course:"MATH112", task:"Light"},
+    },
+    "2026-12-19": {
+      eve:{course:"COGS100", task:"Flash review"},
+    },
+    "2026-12-20": {
+      am:{course:"COGS100", task:"Full review"},
+      pm:{course:"PHYS242", task:"Relativity"},
+    },
+    "2026-12-21": {
+      am:{course:"PHYS242", task:"Quantum + formula sheet"},
+      pm:{course:"COGS100", task:"Long answers"},
+      eve:{course:"PHYS242", task:"Light"},
+    },
+  };
+
+  // Rough catch-up hour totals per course (from the Nov 14 update brief),
+  // shown as a target on the Progress tab — not derived from STUDY_PLAN,
+  // just the planning estimate behind it.
+  const STUDY_PLAN_TARGETS = { MATH225:22, PHYS242:16, COGS100:14, MATH112:11, BIOL102:9 };
+
+  const data = { base, noClassDay, weeks, examDates, COURSE_NAMES, COURSE_COLOR, FINAL_WEIGHT, WEEKLY_HABITS, DAILY_HABITS, TASKS, GRADES, STUDY_PLAN, STUDY_PLAN_TARGETS };
   if (typeof module !== "undefined" && module.exports) module.exports = data;
   else root.SCHEDULE_DATA = data;
 

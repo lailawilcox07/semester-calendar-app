@@ -418,9 +418,9 @@
 <script src="engine.js"></script>
 <script>
 (function(){
-  const { DAYS, DAYFULL, START_MIN, END_MIN, TOTAL_MIN, toMin, fmt, dstr, detectCourse, stripPart,
+  const { DAYS, DAYFULL, START_MIN, END_MIN, TOTAL_MIN, toMin, fmt, dstr, dateKey, detectCourse, stripPart,
     base, noClassDay, weeks, examDates, COURSE_NAMES, COURSE_COLOR, FINAL_WEIGHT,
-    WEEKLY_HABITS, DAILY_HABITS, TASKS, DEADLINES, GRADES,
+    WEEKLY_HABITS, DAILY_HABITS, TASKS, DEADLINES, GRADES, STUDY_PLAN, STUDY_PLAN_TARGETS,
     buildDeadlines, resolveDeadlineDate, periodStartFor, genericTasks, getTasks,
     leadDays, priorityScore, spliceBlock, buildDayBlocks, resolveWeekForDate,
     resolveGradeItem, gradeItemStatus, computeCourseGrade } = window.ENGINE;
@@ -681,7 +681,7 @@
 
       const now = new Date();
       buildDayBlocks(week, day).forEach(b=>{
-        const [start,end,label,cat,location,flagMark] = b;
+        const [start,end,label,cat,location,flagMark,courseColorKey] = b;
         const top = (toMin(start)-START_MIN)*PPM;
         const height = (toMin(end)-toMin(start))*PPM;
         const div = document.createElement("div");
@@ -698,6 +698,14 @@
         div.className = "block " + cat + (flagMark ? " flagged" : "") + (done ? " done" : "") + (compact ? " compact" : "");
         div.style.top = top+"px";
         div.style.height = Math.max(height,16)+"px";
+        if(courseColorKey){
+          // Catch-up study plan: this block is doing double duty as a specific
+          // course's prep, not generic study time — recolor to that course
+          // instead of the generic study amber.
+          div.style.background = "var(--"+courseColorKey+"-tint)";
+          div.style.color = "var(--"+courseColorKey+")";
+          div.style.borderColor = "var(--"+courseColorKey+")";
+        }
         div.title = fmt(start)+"–"+fmt(end)+" "+label;
         div.innerHTML = compact
           ? `<input type="checkbox" class="block-check" ${done?"checked":""} aria-label="Mark done"><span class="l">${label}${location?' <span class="loc-pin">📍</span>':""}</span>`
@@ -845,15 +853,41 @@
       ${tasks.map(t=> taskRowHtml(t,color)).join("")}
     </div>`;
   }
+  // Today's slice of the catch-up study plan (data.js STUDY_PLAN), as its
+  // own checkable group at the top of the To-Do tab — same done-state store
+  // as everything else, keyed "studyplan-<date>-<slot>".
+  function studyPlanTodayHtml(){
+    const today = new Date(); today.setHours(0,0,0,0);
+    const key = dateKey(today);
+    const plan = STUDY_PLAN[key];
+    if(!plan) return "";
+    const rows = ["am","pm","eve"].filter(slot=> plan[slot]).map(slot=>{
+      const entry = plan[slot];
+      const taskId = "studyplan-"+key+"-"+slot;
+      const done = isDone(taskId);
+      const color = entry.course ? "var(--"+(COURSE_COLOR[entry.course]||"study")+")" : "var(--study)";
+      const label = (entry.course ? (COURSE_NAMES[entry.course]||entry.course)+" — " : "") + entry.task;
+      return `<label class="todo-row${done?" done":""}">
+        <input type="checkbox" data-taskid="${taskId}" ${done?"checked":""} style="accent-color:${color}">
+        <span class="todo-text">${label}</span>
+      </label>`;
+    }).join("");
+    if(!rows) return "";
+    return `<div class="task-group">
+      <div class="task-group-head" style="color:var(--study)"><span>Today's catch-up plan</span></div>
+      ${rows}
+    </div>`;
+  }
   function renderTaskTodo(){
     const el = document.getElementById("tasklist");
     const { dueGroups, habitsByCourse } = buildTaskGroups();
     const courseKeys = Object.keys(COURSE_NAMES).filter(c=> habitsByCourse[c] && habitsByCourse[c].length);
+    const studyPlanHtml = studyPlanTodayHtml();
 
-    if(!dueGroups.length && !courseKeys.length){
+    if(!dueGroups.length && !courseKeys.length && !studyPlanHtml){
       el.innerHTML = `<div class="todo-empty">Nothing due soon enough to need study time yet — check back closer to your next deadline.</div>`;
     } else {
-      let html = "";
+      let html = studyPlanHtml;
       dueGroups.forEach(g=>{
         const color = "var(--"+(COURSE_COLOR[g.item.course]||"class")+")";
         const dateStr = g.date ? g.date.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}) : "";
@@ -871,7 +905,7 @@
     el.querySelectorAll("input[type=checkbox]").forEach(cb=>{
       cb.addEventListener("change", ()=>{
         const taskId = cb.dataset.taskid;
-        if(taskId.indexOf("habit-")===0){
+        if(taskId.indexOf("habit-")===0 || taskId.indexOf("studyplan-")===0){
           setDone(taskId, !isDone(taskId));
           refreshAll();
           return;
@@ -898,10 +932,11 @@
       const doneCount = graded.filter(i=>isDone(i.id)).length;
       const pct = graded.length ? Math.round(doneCount/graded.length*100) : 0;
       const color = "var(--"+COURSE_COLOR[c]+")";
+      const target = STUDY_PLAN_TARGETS[c];
       return `<div class="course-card">
         <div class="course-head">
           <span class="course-name" style="color:${color}">${COURSE_NAMES[c]}</span>
-          <span class="course-count mono">${doneCount}/${graded.length} for marks</span>
+          <span class="course-count mono">${doneCount}/${graded.length} for marks${target?` · ~${target}h catch-up target`:""}</span>
         </div>
         <div class="course-bar-track"><div class="course-bar-fill" style="width:${pct}%;background:${color}"></div></div>
         <div class="course-items">${graded.map(i=>todoRowHtml(i,true)).join("")}</div>

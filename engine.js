@@ -3,7 +3,7 @@
 // (loaded after data.js via <script>) or in Node (the notification script).
 (function(root){
   const D = (typeof module !== "undefined" && module.exports) ? require("./data.js") : root.SCHEDULE_DATA;
-  const { base, noClassDay, weeks, examDates, COURSE_NAMES, COURSE_COLOR, FINAL_WEIGHT, WEEKLY_HABITS, DAILY_HABITS, TASKS, GRADES } = D;
+  const { base, noClassDay, weeks, examDates, COURSE_NAMES, COURSE_COLOR, FINAL_WEIGHT, WEEKLY_HABITS, DAILY_HABITS, TASKS, GRADES, STUDY_PLAN, STUDY_PLAN_TARGETS } = D;
 
   const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
   const DAYFULL = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
@@ -20,6 +20,7 @@
     return h12 + (m? ":"+String(m).padStart(2,"0") : "") + ap;
   }
   function dstr(dt){ return dt.toLocaleDateString("en-US",{month:"short",day:"numeric"}); }
+  function dateKey(dt){ return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0"); }
 
   function detectCourse(text){
     text = text || "";
@@ -173,6 +174,41 @@
     return newBlocks;
   }
 
+  // Splices the catch-up study plan (data.js STUDY_PLAN) onto a day's open
+  // "study"-category blocks: am -> first, eve -> last, pm -> whatever's in
+  // between. Fewer than 3 study blocks that day means the leftover slots
+  // (pm and/or eve) merge into the last one; a slot with no matching plan
+  // entry (or a date with no plan at all) leaves the block untouched.
+  function applyStudyPlan(blocks, date){
+    if(!date) return blocks;
+    const plan = STUDY_PLAN[dateKey(date)];
+    if(!plan) return blocks;
+    const idxs = blocks.map((b,i)=> b[3]==="study" ? i : -1).filter(i=>i>=0);
+    const n = idxs.length;
+    if(!n) return blocks;
+    function slotIdxs(pos){
+      if(n===1) return [idxs[0]];
+      if(n===2) return pos===0 ? [idxs[0]] : [idxs[1]];
+      if(pos===0) return [idxs[0]];
+      if(pos===2) return [idxs[n-1]];
+      return idxs.slice(1, n-1);
+    }
+    const perBlock = {};
+    [["am",plan.am],["pm",plan.pm],["eve",plan.eve]].forEach(([,entry],pos)=>{
+      if(!entry) return;
+      slotIdxs(pos).forEach(bi=>{ (perBlock[bi] = perBlock[bi]||[]).push(entry); });
+    });
+    const out = blocks.map(b=>b.slice());
+    Object.keys(perBlock).forEach(biStr=>{
+      const bi = Number(biStr);
+      const entries = perBlock[bi];
+      out[bi][2] = entries.map(e=> (e.course ? COURSE_NAMES[e.course]+" — " : "") + e.task).join(" · ");
+      const courses = [...new Set(entries.map(e=>e.course).filter(Boolean))];
+      if(courses.length===1) out[bi][6] = COURSE_COLOR[courses[0]];
+    });
+    return out;
+  }
+
   function buildDayBlocks(week, day){
     let blocks = (week.noClasses && day!=="Sat" && day!=="Sun") ? noClassDay.map(b=>b.slice()) : base[day].map(b=>b.slice());
 
@@ -194,6 +230,10 @@
         }
       });
     });
+
+    const dIdx = DAYS.indexOf(day);
+    const date = week.dates ? week.dates[dIdx] : null;
+    blocks = applyStudyPlan(blocks, date);
     return blocks;
   }
 
@@ -268,14 +308,14 @@
 
   const engine = {
     // re-exported data, so one require()/one <script> gets everything
-    base, noClassDay, weeks, examDates, COURSE_NAMES, COURSE_COLOR, FINAL_WEIGHT, WEEKLY_HABITS, DAILY_HABITS, TASKS, GRADES,
+    base, noClassDay, weeks, examDates, COURSE_NAMES, COURSE_COLOR, FINAL_WEIGHT, WEEKLY_HABITS, DAILY_HABITS, TASKS, GRADES, STUDY_PLAN, STUDY_PLAN_TARGETS,
     // constants
     DAYS, DAYFULL, START_MIN, END_MIN, TOTAL_MIN,
     // functions
-    toMin, fmt, dstr, detectCourse, stripPart,
+    toMin, fmt, dstr, dateKey, detectCourse, stripPart,
     buildDeadlines, resolveDeadlineDate, DEADLINES,
     periodStartFor, genericTasks, getTasks, leadDays, priorityScore,
-    spliceBlock, buildDayBlocks, resolveWeekForDate,
+    spliceBlock, applyStudyPlan, buildDayBlocks, resolveWeekForDate,
     resolveGradeItem, gradeItemStatus, computeCourseGrade,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = engine;
