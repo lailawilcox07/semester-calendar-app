@@ -21,8 +21,7 @@
       ["14:20","14:40","Walk home","commute"],
       ["14:40","17:30","Study block","study"],
       ["17:30","18:00","Dinner","meal"],
-      ["18:00","20:00","Study block","study"],
-      ["20:00","21:30","Soccer","sport"],
+      ["18:00","21:30","Study block","study"],
       ["21:30","22:30","Wind-down","sleep"],
     ],
     Tue: [
