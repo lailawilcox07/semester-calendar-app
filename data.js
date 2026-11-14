@@ -467,9 +467,8 @@
   ];
   const TASKS = {
     "ov-w2|MATH225|quiz|MATH 225 — Tutorial — Quiz 1": [
-      { text:"Review classification of ODEs (order, linearity, homogeneous vs. non-homogeneous)", minutes:20 },
-      { text:"Practice separable first-order equations from Assignment 1 (and 2, if posted) — do them solo, not just read the solutions", minutes:40 },
-      { text:"Skim Week 1–2 course notes for anything not covered above", minutes:15 },
+      { text:"Verified scope: elementary questions about calculus — review derivatives, integrals, and limits", minutes:30 },
+      { text:"Skim Week 1–2 course notes for anything calculus-adjacent covered in class", minutes:15 },
     ],
     "due-w2-Thu-0": [
       { text:"Complete the online pre-lab activity for Lab 1A — not started as of the day before, don't leave it to the last minute", minutes:20 },
@@ -519,9 +518,10 @@
       { text:"Attempt the Biosafety Quiz — need ≥50% to unlock Labs 2B/2C, retry if you don't clear it", minutes:15 },
     ],
     "ov-w5|MATH225|quiz|MATH 225 — Tutorial — Quiz 2": [
-      { text:"Review exact equations and integrating factors (next technique after separable equations) — inferred sequencing, confirm against your actual notes", minutes:30 },
-      { text:"Redo the relevant assignment(s) posted since Quiz 1", minutes:40 },
-      { text:"Quick review of Quiz 1 topics, since the rolling-window rule means some overlap", minutes:15 },
+      { text:"Review classification of ODEs: linear/nonlinear, order", minutes:15 },
+      { text:"Review scalar first-order linear ODEs", minutes:25 },
+      { text:"Review separable ODEs", minutes:25 },
+      { text:"Redo the relevant assignment(s) posted since Quiz 1", minutes:30 },
     ],
     "ov-w6|MATH225|quiz|MATH 225 — Tutorial — Quiz 3": [
       { text:"Review exact equations and integrating factors", minutes:25 },
@@ -626,9 +626,10 @@
       { text:"Complete the pre-lab activity/quiz for \"Biotech Applications\"", minutes:40 },
     ],
     "ov-w11|PHYS242|quiz|PHYS 242 — Tutorial — Quiz 3": [
-      { text:"Particle nature of matter, atomic spectra, Bohr model (Wk9)", minutes:25 },
-      { text:"Matter waves, wave-particle duality, Heisenberg Uncertainty (Wk10)", minutes:25 },
-      { text:"Quantum mechanics postulates (Wk11)", minutes:25 },
+      { text:"Particle nature of matter, atomic spectra, Bohr model (Wk9) (unconfirmed — check onQ)", minutes:25 },
+      { text:"Matter waves, wave-particle duality, Heisenberg Uncertainty (Wk10) (unconfirmed — check onQ)", minutes:25 },
+      { text:"Quantum mechanics postulates (Wk11) (unconfirmed — check onQ)", minutes:25 },
+      { text:"Note: the photoelectric effect is NOT assessed in this course", minutes:10 },
     ],
     "ov-w11|MATH112|quiz|MATH 112 — Quiz 3": [
       { text:"Get a head start during Week 10 if you can: skim Homework Sets 5–6", minutes:30 },
