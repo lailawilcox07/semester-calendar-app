@@ -273,27 +273,15 @@
     border:1px solid var(--line); border-radius:9px; margin-bottom:6px; font-size:13.5px; cursor:pointer;
   }
   .todo-row input[type=checkbox]{width:17px; height:17px; flex:none; cursor:pointer;}
-  .todo-row.small{padding:8px 10px; font-size:12.5px; margin-bottom:4px;}
-  .todo-row.small input[type=checkbox]{width:15px; height:15px;}
-  .todo-course{font-size:11px; font-weight:700; letter-spacing:.02em; flex:none; min-width:62px;}
   .todo-text{flex:1;}
   .todo-text[data-id]{cursor:pointer;}
   .todo-text[data-id]:hover{text-decoration:underline; text-decoration-style:dotted;}
   .todo-date{font-size:11.5px; color:var(--muted); flex:none; white-space:nowrap;}
-  .todo-weight{font-size:11px; color:var(--muted); flex:none; white-space:nowrap; opacity:.85;}
-  .todo-weight.ungraded{font-style:italic;}
-  .todo-row.ungraded{opacity:.75;}
-  .todo-row.ungraded .todo-course{opacity:.7;}
-  .course-subhead{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; margin:12px 0 6px;}
   .todo-row.done{opacity:.5;}
   .todo-row.done .todo-text{text-decoration:line-through;}
-  .todo-row.overdue .todo-date{color:var(--flag); font-weight:600;}
 
   .todo-row.started .todo-text::before{content:"In progress — "; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--study); opacity:.85;}
-  .todo-row.urgent{background:var(--flag-tint); border:2px solid var(--flag);}
-  .todo-row.urgent .todo-date{color:var(--flag); font-weight:700;}
   .todo-empty{color:var(--muted); font-size:13.5px; padding:20px 4px;}
-  .todo-divider{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:700; margin:16px 4px 8px;}
 
   .task-group{margin-bottom:14px;}
   .task-group-head{
@@ -302,15 +290,6 @@
   .task-group-head .todo-date{font-weight:400;}
   .task-group .todo-row{margin-left:14px; padding:8px 12px; font-size:12.5px;}
   .task-group .todo-row input[type=checkbox]{width:15px; height:15px;}
-
-  .proglist{display:flex; flex-direction:column; gap:14px;}
-  .course-card{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px;}
-  .course-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; gap:10px;}
-  .course-name{font-family:"Fraunces",serif; font-size:16px; font-weight:600;}
-  .course-count{font-size:12.5px; color:var(--muted); flex:none;}
-  .course-bar-track{height:6px; border-radius:3px; background:var(--line); overflow:hidden; margin-bottom:10px;}
-  .course-bar-fill{height:100%; border-radius:3px; transition:width .2s;}
-  .course-items{display:flex; flex-direction:column;}
 
   /* ---- grades tab ---- */
   .gradeslist{display:flex; flex-direction:column; gap:14px;}
@@ -415,7 +394,6 @@
     <button data-tab="cal" class="active" type="button">Calendar</button>
     <button data-tab="todo" type="button">To-Do</button>
     <button data-tab="due" type="button">Due</button>
-    <button data-tab="prog" type="button">Progress</button>
     <button data-tab="grades" type="button">Grades</button>
   </nav>
 
@@ -448,10 +426,6 @@
     <div class="todolist" id="duelist"></div>
   </div>
 
-  <div id="view-prog" hidden>
-    <div class="proglist" id="proglist"></div>
-  </div>
-
   <div id="view-grades" hidden>
     <div class="gradeslist" id="gradeslist"></div>
   </div>
@@ -476,7 +450,7 @@
 (function(){
   const { DAYS, DAYFULL, START_MIN, END_MIN, TOTAL_MIN, toMin, fmt, dstr, dateKey, detectCourse, stripPart,
     base, noClassDay, weeks, examDates, COURSE_NAMES, COURSE_COLOR, FINAL_WEIGHT,
-    WEEKLY_HABITS, DAILY_HABITS, TASKS, DEADLINES, GRADES, STUDY_PLAN, STUDY_PLAN_TARGETS,
+    WEEKLY_HABITS, DAILY_HABITS, TASKS, DEADLINES, GRADES, STUDY_PLAN,
     buildDeadlines, resolveDeadlineDate, periodStartFor, genericTasks, getTasks,
     leadDays, priorityScore, spliceBlock, buildDayBlocks, resolveWeekForDate,
     resolveGradeItem, gradeItemStatus, computeCourseGrade,
@@ -801,29 +775,6 @@
     calwrap.appendChild(bodyrow);
   }
 
-  // ---- to-do tab ----
-  function todoRowHtml(item, small){
-    const date = resolveDeadlineDate(item);
-    const done = isDone(item.id);
-    const today = new Date(); today.setHours(0,0,0,0);
-    const overdue = date && date < today && !done;
-    const dateStr = date ? date.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}) : "TBA";
-    const color = "var(--"+(COURSE_COLOR[item.course]||"class")+")";
-    const ungraded = item.graded===false;
-    const weightStr = ungraded ? "Ungraded" : (item.weight ? (Math.round(item.weight*10)/10)+"%" : "");
-    // started/urgent tracking is Due-tab only (small=true rows are the Progress tab)
-    const started = !small && isStarted(item.id);
-    const daysUntil = date ? Math.round((date-today)/86400000) : null;
-    const urgent = !small && !done && daysUntil!==null && (daysUntil<=0 || (daysUntil<=3 && !started));
-    return `<label class="todo-row${small?" small":""}${done?" done":""}${overdue?" overdue":""}${ungraded?" ungraded":""}${started?" started":""}${urgent?" urgent":""}">
-      <input type="checkbox" data-id="${item.id}" ${done?"checked":""} style="accent-color:${color}">
-      ${small?"":`<span class="todo-course" style="color:${color}">${COURSE_NAMES[item.course]||item.course}</span>`}
-      <span class="todo-text"${small?"":` data-id="${item.id}"`}>${item.text}</span>
-      ${weightStr && !small ? `<span class="todo-weight mono${ungraded?" ungraded":""}">${weightStr}</span>` : ""}
-      <span class="todo-date mono">${dateStr}</span>
-    </label>`;
-  }
-
   // ---- Due tab: show/hide ungraded work, course filter, show/hide done —
   // all localStorage, style ported from queens-semester-calendar's Due tab ----
   const SHOW_UNGRADED_KEY = "semcal-show-ungraded-v1";
@@ -1039,38 +990,9 @@
     });
     return carried;
   }
-  // Planned vs. done catch-up hours per course, from the focus-day plan:
-  // every day's full study-block time counts toward its focus course as
-  // "planned," prorated to "done" by the fraction of that day's tasks
-  // checked off. Only counts dates up to and including today.
-  function computeStudyPlanHours(){
-    const today = new Date(); today.setHours(0,0,0,0);
-    const out = {};
-    Object.keys(COURSE_NAMES).forEach(c=> out[c] = { plannedMin:0, doneMin:0 });
-    focusPlanEntries().forEach(({key,plan})=>{
-      if(!plan.focus) return;
-      const [y,m,d] = key.split("-").map(Number);
-      const planDate = new Date(y,m-1,d);
-      if(planDate>today) return;
-      const week = resolveWeekForDate(planDate);
-      if(!week) return;
-      const dayName = DAYS[(planDate.getDay()+6)%7];
-      const studyMin = buildDayBlocks(week, dayName).filter(b=>b[3]==="study")
-        .reduce((s,b)=> s + (toMin(b[1])-toMin(b[0])), 0);
-      const tasks = plan.tasks || [];
-      let doneCount = 0;
-      tasks.forEach((t,i)=>{ if(isDone(taskItemId(key,i))) doneCount++; });
-      const frac = tasks.length ? doneCount/tasks.length : 1;
-      out[plan.focus].plannedMin += studyMin;
-      out[plan.focus].doneMin += studyMin*frac;
-    });
-    return out;
-  }
   // This week's (Mon-Sun) planned study minutes across all courses vs. done
   // so far — the To-Do tab's "This week" bar, ported from
-  // queens-semester-calendar's weekly summary. Distinct from
-  // computeStudyPlanHours()'s per-course, whole-term totals used on the
-  // Progress tab.
+  // queens-semester-calendar's weekly summary.
   function computeWeekStudyProgress(){
     const today = new Date(); today.setHours(0,0,0,0);
     const monday = new Date(today); monday.setDate(today.getDate()-((today.getDay()+6)%7));
@@ -1223,46 +1145,6 @@
     });
   }
 
-  // ---- progress tab ----
-  function renderProgress(){
-    const el = document.getElementById("proglist");
-    const courses = Object.keys(COURSE_NAMES);
-    const byDate = (a,b)=>{
-      const da = resolveDeadlineDate(a), db = resolveDeadlineDate(b);
-      return (da?da.getTime():Infinity) - (db?db.getTime():Infinity);
-    };
-    const hours = computeStudyPlanHours();
-    el.innerHTML = courses.map(c=>{
-      const all = DEADLINES.filter(i=>i.course===c);
-      const graded = all.filter(i=>i.graded!==false).sort(byDate);
-      const ungraded = all.filter(i=>i.graded===false).sort(byDate);
-      const doneCount = graded.filter(i=>isDone(i.id)).length;
-      const pct = graded.length ? Math.round(doneCount/graded.length*100) : 0;
-      const color = "var(--"+COURSE_COLOR[c]+")";
-      const target = STUDY_PLAN_TARGETS[c];
-      const h = hours[c];
-      const plannedH = h.plannedMin/60, doneH = h.doneMin/60;
-      const behindH = plannedH - doneH;
-      const hoursLine = h.plannedMin>0
-        ? `<div class="course-subhead" style="margin-top:0;">Catch-up: ${doneH.toFixed(1)}h done / ${plannedH.toFixed(1)}h planned so far${target?` (target ~${target}h)`:""}${behindH>3?` · <span style="color:var(--flag); font-weight:700;">behind by ${behindH.toFixed(1)}h</span>`:""}</div>`
-        : "";
-      return `<div class="course-card">
-        <div class="course-head">
-          <span class="course-name" style="color:${color}">${COURSE_NAMES[c]}</span>
-          <span class="course-count mono">${doneCount}/${graded.length} for marks</span>
-        </div>
-        <div class="course-bar-track"><div class="course-bar-fill" style="width:${pct}%;background:${color}"></div></div>
-        ${hoursLine}
-        <div class="course-items">${graded.map(i=>todoRowHtml(i,true)).join("")}</div>
-        ${ungraded.length ? `<div class="course-subhead">Practice · ungraded</div>
-        <div class="course-items">${ungraded.map(i=>todoRowHtml(i,true)).join("")}</div>` : ""}
-      </div>`;
-    }).join("");
-    el.querySelectorAll("input[type=checkbox]").forEach(cb=>{
-      cb.addEventListener("change", ()=> toggleDone(cb.dataset.id));
-    });
-  }
-
   // ---- grades tab ----
   function gradeItemRowHtml(item){
     const disabled = item.status==="upcoming";
@@ -1404,7 +1286,6 @@
     render(currentWeekId);
     renderTaskTodo();
     renderDue();
-    renderProgress();
     renderNowStrip();
   }
 
@@ -1584,11 +1465,9 @@
     document.getElementById("view-cal").hidden = tab!=="cal";
     document.getElementById("view-todo").hidden = tab!=="todo";
     document.getElementById("view-due").hidden = tab!=="due";
-    document.getElementById("view-prog").hidden = tab!=="prog";
     document.getElementById("view-grades").hidden = tab!=="grades";
     if(tab==="todo") renderTaskTodo();
     if(tab==="due") renderDue();
-    if(tab==="prog") renderProgress();
     if(tab==="grades") renderGrades();
   });
 
@@ -1602,7 +1481,6 @@
   render(initialWeek ? initialWeek.id : "w2");
   renderTaskTodo();
   renderDue();
-  renderProgress();
   renderGrades();
   renderNowStrip();
   setInterval(renderNowStrip, 30000);
