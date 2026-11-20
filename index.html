@@ -681,7 +681,7 @@
 
       const now = new Date();
       buildDayBlocks(week, day).forEach(b=>{
-        const [start,end,label,cat,location,flagMark,courseColorKey] = b;
+        const [start,end,label,cat,location,flagMark,courseColorKey,planMeta] = b;
         const top = (toMin(start)-START_MIN)*PPM;
         const height = (toMin(end)-toMin(start))*PPM;
         const div = document.createElement("div");
@@ -716,7 +716,7 @@
         });
         if(cat==="study"){
           div.style.cursor = "pointer";
-          div.addEventListener("click", ()=> openBlockModal(blockDate, start, end, label));
+          div.addEventListener("click", ()=> openBlockModal(blockDate, start, end, label, planMeta));
         } else if(location){
           div.style.cursor = "pointer";
           div.addEventListener("click", ()=> openLocationModal(label, location, blockDate, start, end));
@@ -1245,15 +1245,51 @@
   }
 
   // ---- block detail modal ----
-  let openBlock = null; // { date, start, end, label, tasks } | null
+  let openBlock = null; // { date, start, end, label, tasks, fromPlan } | null
 
-  function openBlockModal(date, start, end, label){
+  // If the study plan (STUDY_PLAN) is what actually labelled this block,
+  // the modal should show exactly that — not whatever the independent
+  // auto-scheduler separately assigned to the same time slot, which is
+  // what was happening before (the block said one thing, the modal showed
+  // another). Falls back to the auto-scheduler only when the block has no
+  // specific plan content of its own (e.g. a focus day's extra block
+  // beyond its task count).
+  function tasksFromPlanMeta(planMeta){
+    if(!planMeta) return null;
+    const plan = STUDY_PLAN[planMeta.key];
+    if(!plan) return null;
+    if(planMeta.kind==="focus"){
+      if(!planMeta.taskIdxs || !planMeta.taskIdxs.length) return null;
+      const courseLabel = COURSE_NAMES[plan.focus] || plan.focus;
+      return planMeta.taskIdxs.map(i=> ({
+        taskId: taskItemId(planMeta.key, i),
+        text: plan.tasks[i],
+        minutes: 0,
+        item: { course: plan.focus, text: courseLabel+" — today's focus" },
+      }));
+    }
+    if(planMeta.kind==="slot"){
+      if(!planMeta.slots || !planMeta.slots.length) return null;
+      return planMeta.slots.map(slot=>{
+        const entry = plan[slot];
+        return {
+          taskId: "studyplan-"+planMeta.key+"-"+slot,
+          text: entry.task,
+          minutes: 0,
+          item: { course: entry.course, text: "Catch-up plan" },
+        };
+      });
+    }
+    return null;
+  }
+  function openBlockModal(date, start, end, label, planMeta){
     // Snapshot the task list once, on open — scheduleTasks() drops a task the
     // moment it's checked (correctly, for future scheduling), but re-querying it
     // on every render made a block's list shrink out from under you mid-session,
     // so an accidental tap looked like the item vanished with no way to undo.
-    const tasks = date ? (scheduleTasks()[date.toDateString()+"|"+start] || []) : null;
-    openBlock = { date, start, end, label, tasks };
+    const planTasks = date ? tasksFromPlanMeta(planMeta) : null;
+    const tasks = planTasks || (date ? (scheduleTasks()[date.toDateString()+"|"+start] || []) : null);
+    openBlock = { date, start, end, label, tasks, fromPlan: !!planTasks };
     document.getElementById("modalBackdrop").hidden = false;
     renderBlockModal();
   }
@@ -1263,7 +1299,7 @@
   }
   function renderBlockModal(){
     if(!openBlock) return;
-    const { date, start, end, label, tasks } = openBlock;
+    const { date, start, end, label, tasks, fromPlan } = openBlock;
     document.getElementById("modalTitle").textContent = label;
     document.getElementById("modalSub").textContent =
       (date ? date.toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"})+" · " : "") + fmt(start)+"–"+fmt(end);
@@ -1292,15 +1328,20 @@
         </span>
       </label>`;
     }).join("");
-    const usedMin = tasks.reduce((sum,t)=> sum+t.minutes, 0);
-    const blockMin = toMin(end)-toMin(start);
-    if(blockMin-usedMin >= 20){
-      body.innerHTML += `<div class="modal-empty">That's ~${usedMin} min scheduled — the rest of this block (${blockMin-usedMin} min) is flexible: buffer, review, or anything else not tracked here.</div>`;
+    // The "rest of this block is flexible" footer only makes sense for the
+    // auto-scheduler's partial fills — a study-plan block's whole duration
+    // already IS that task, not a prep item plus leftover free time.
+    if(!fromPlan){
+      const usedMin = tasks.reduce((sum,t)=> sum+t.minutes, 0);
+      const blockMin = toMin(end)-toMin(start);
+      if(blockMin-usedMin >= 20){
+        body.innerHTML += `<div class="modal-empty">That's ~${usedMin} min scheduled — the rest of this block (${blockMin-usedMin} min) is flexible: buffer, review, or anything else not tracked here.</div>`;
+      }
     }
     body.querySelectorAll("input[type=checkbox]").forEach(cb=>{
       cb.addEventListener("change", ()=>{
         const taskId = cb.dataset.taskid;
-        if(taskId.indexOf("habit-")===0){
+        if(taskId.indexOf("habit-")===0 || taskId.indexOf("studyplan-")===0){
           setDone(taskId, !isDone(taskId));
           refreshAll();
           renderBlockModal();

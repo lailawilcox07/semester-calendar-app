@@ -179,7 +179,7 @@
   // study blocks that day means the leftover slots (pm and/or eve) merge
   // into the last one; a slot with no matching plan entry leaves the block
   // untouched.
-  function applySlotPlan(blocks, plan){
+  function applySlotPlan(blocks, plan, key){
     const idxs = blocks.map((b,i)=> b[3]==="study" ? i : -1).filter(i=>i>=0);
     const n = idxs.length;
     if(!n) return blocks;
@@ -191,9 +191,13 @@
       return idxs.slice(1, n-1);
     }
     const perBlock = {};
-    [["am",plan.am],["pm",plan.pm],["eve",plan.eve]].forEach(([,entry],pos)=>{
+    const slotsByBlock = {};
+    [["am",plan.am],["pm",plan.pm],["eve",plan.eve]].forEach(([slotName,entry],pos)=>{
       if(!entry) return;
-      slotIdxs(pos).forEach(bi=>{ (perBlock[bi] = perBlock[bi]||[]).push(entry); });
+      slotIdxs(pos).forEach(bi=>{
+        (perBlock[bi] = perBlock[bi]||[]).push(entry);
+        (slotsByBlock[bi] = slotsByBlock[bi]||[]).push(slotName);
+      });
     });
     const out = blocks.map(b=>b.slice());
     Object.keys(perBlock).forEach(biStr=>{
@@ -202,6 +206,10 @@
       out[bi][2] = entries.map(e=> (e.course ? COURSE_NAMES[e.course]+" — " : "") + e.task).join(" · ");
       const courses = [...new Set(entries.map(e=>e.course).filter(Boolean))];
       if(courses.length===1) out[bi][6] = COURSE_COLOR[courses[0]];
+      // Lets the block-detail modal show exactly this plan content instead
+      // of unrelated auto-scheduled deadline prep — see openBlockModal() in
+      // index.html.
+      out[bi][7] = { key, kind:"slot", slots:slotsByBlock[bi] };
     });
     return out;
   }
@@ -212,7 +220,7 @@
   // blocks: the last block absorbs every remaining task, joined together.
   // `fixed` items never touch the calendar — see getFixedItems() in
   // index.html.
-  function applyFocusPlan(blocks, plan){
+  function applyFocusPlan(blocks, plan, key){
     const idxs = blocks.map((b,i)=> b[3]==="study" ? i : -1).filter(i=>i>=0);
     const n = idxs.length;
     if(!n || !plan.focus) return blocks;
@@ -221,14 +229,22 @@
     const courseLabel = COURSE_NAMES[plan.focus] || plan.focus;
     idxs.forEach((bi,pos)=>{
       let label = courseLabel;
+      let taskIdxs = [];
       if(pos===n-1 && tasks.length>n){
         const overflow = tasks.slice(pos).join(" · ");
         if(overflow) label += " — " + overflow;
+        taskIdxs = tasks.map((t,i)=>i).slice(pos);
       } else if(tasks[pos]){
         label += " — " + tasks[pos];
+        taskIdxs = [pos];
       }
       out[bi][2] = label;
       out[bi][6] = COURSE_COLOR[plan.focus];
+      // Lets the block-detail modal show exactly this plan content instead
+      // of unrelated auto-scheduled deadline prep — see openBlockModal() in
+      // index.html. Empty taskIdxs (a block beyond the day's task count)
+      // falls back to the normal auto-scheduler there.
+      out[bi][7] = { key, kind:"focus", taskIdxs };
     });
     return out;
   }
@@ -237,9 +253,10 @@
   // quiz-day entry with no focus course: the blocks pass through untouched.
   function applyStudyPlan(blocks, date){
     if(!date) return blocks;
-    const plan = STUDY_PLAN[dateKey(date)];
+    const key = dateKey(date);
+    const plan = STUDY_PLAN[key];
     if(!plan) return blocks;
-    return Array.isArray(plan.tasks) ? applyFocusPlan(blocks, plan) : applySlotPlan(blocks, plan);
+    return Array.isArray(plan.tasks) ? applyFocusPlan(blocks, plan, key) : applySlotPlan(blocks, plan, key);
   }
 
   function buildDayBlocks(week, day){
