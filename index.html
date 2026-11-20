@@ -157,6 +157,44 @@
   .gridscroll{overflow-x:auto; border:1px solid var(--line); border-radius:12px; background:var(--surface); -webkit-overflow-scrolling:touch;}
   .calwrap{display:flex; min-width:1030px;}
 
+  /* ---- agenda (phone) view of the calendar — a day-by-day list instead of
+     the grid, ported from queens-semester-calendar's Calendar tab. Below
+     900px this replaces the grid entirely (it still exists in the DOM,
+     just hidden, so nothing needs re-rendering when the window resizes). ---- */
+  .gridscroll{display:none;}
+  .agenda{display:flex; flex-direction:column; gap:4px;}
+  @media (min-width:900px){ .agenda{display:none;} .gridscroll{display:block;} }
+  .ag-day{margin-bottom:16px;}
+  .ag-day h4{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0 0 8px;
+    font-family:"Fraunces",serif; font-size:15px; font-weight:600;
+  }
+  .ag-day.today h4{color:var(--class);}
+  .ag-today-tag, .ag-break-tag{
+    font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:999px; font-family:"Work Sans",sans-serif;
+  }
+  .ag-today-tag{background:var(--class); color:var(--surface);}
+  .ag-break-tag{background:var(--study-tint); color:var(--study);}
+  .ag-duewrap{display:flex; flex-wrap:wrap; gap:0; margin-bottom:6px;}
+  .ag-day .duetag{margin:0 6px 6px 0;}
+  .ag-item{
+    display:flex; gap:12px; align-items:center; background:var(--ct); border-left:4px solid var(--c);
+    border-radius:8px; padding:8px 12px; margin-bottom:6px; font-size:13.5px;
+  }
+  .ag-item.study{background:var(--surface); border:1px dashed var(--c); border-left:4px solid var(--c);}
+  .ag-item.exam{background:var(--flag); border-left-color:var(--flag);}
+  .ag-item.exam b, .ag-item.exam .ag-time{color:var(--surface);}
+  .ag-item.flagged{border-style:dashed; border-color:var(--flag);}
+  .ag-item.done{opacity:.5;}
+  .ag-item.done b{text-decoration:line-through;}
+  .ag-time{font-size:10.5px; color:var(--muted); min-width:46px; line-height:1.3; flex:none; font-variant-numeric:tabular-nums;}
+  .ag-item.exam .ag-time{color:var(--surface); opacity:.85;}
+  .ag-body{display:flex; align-items:center; gap:8px; flex:1; min-width:0;}
+  .ag-body b{color:var(--c); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .ag-check{width:16px; height:16px; flex:none; accent-color:var(--c); cursor:pointer;}
+  .ag-loc{font-size:11px; flex:none;}
+  .ag-empty{color:var(--muted); font-size:12.5px; margin:0 0 6px;}
+
   .timecol{flex:0 0 54px; position:sticky; left:0; z-index:4; background:var(--surface); border-right:1px solid var(--line);}
   .daycol{flex:1 1 0; min-width:138px; position:relative; border-right:1px solid var(--line);}
   .daycol:last-child{border-right:none;}
@@ -422,6 +460,8 @@
     <div class="legend" id="legend"></div>
     <div class="weekbar" id="weekbar"></div>
     <div class="weeknote" id="weeknote"></div>
+
+    <div class="agenda" id="agenda"></div>
 
     <div class="gridscroll">
       <div class="calwrap" id="calwrap"></div>
@@ -801,6 +841,84 @@
     calwrap.style.flexDirection = "column";
     calwrap.appendChild(headrow);
     calwrap.appendChild(bodyrow);
+
+    renderAgenda(week);
+  }
+
+  // ---- calendar: phone agenda view (a day list instead of the grid,
+  // ported from queens-semester-calendar) — same buildDayBlocks() data as
+  // the grid, same block/due ids, so done-state and the block-detail modal
+  // stay identical between the two views.
+  function agItemHtml(b, blockId, done){
+    const [start,end,label,cat,location,flagMark,courseColorKey] = b;
+    const colorKey = courseColorKey || cat;
+    return `<div class="ag-item ${cat}${flagMark?" flagged":""}${done?" done":""}" data-blockid="${blockId}" style="--c:var(--${colorKey}); --ct:var(--${colorKey}-tint);">
+      <input type="checkbox" class="ag-check" ${done?"checked":""} aria-label="Mark done">
+      <span class="ag-time">${fmt(start)}<br>${fmt(end)}</span>
+      <span class="ag-body">
+        <b>${label}</b>${location?` <span class="ag-loc">📍</span>`:""}
+      </span>
+    </div>`;
+  }
+  // Built alongside the HTML string (same loop, same order) so the click
+  // handlers below can close over the real block objects instead of
+  // re-parsing them back out of the DOM.
+  function renderAgenda(week){
+    const el = document.getElementById("agenda");
+    const now = new Date();
+    const today = new Date(); today.setHours(0,0,0,0);
+    const clicks = []; // { blockId, autoByTime, cat, location, blockDate, start, end, label, planMeta }
+
+    el.innerHTML = DAYS.map((day,i)=>{
+      const blockDate = week.dates ? week.dates[i] : null;
+      const isToday = blockDate && blockDate.getTime()===today.getTime();
+      const dateLabel = week.dates ? dstr(week.dates[i]) : "";
+      const dueList = (week.due && week.due[day]) || [];
+      const dueHtml = dueList.map((entry,idx)=>{
+        const did = "due-"+week.id+"-"+day+"-"+idx;
+        const done = isDone(did);
+        return `<label class="duetag${done?" done":""}"><input type="checkbox" data-id="${did}" ${done?"checked":""}><span>${entry.text}</span></label>`;
+      }).join("");
+      const blocks = buildDayBlocks(week, day);
+      const itemsHtml = blocks.length
+        ? blocks.map(b=>{
+            const [start,end,label,cat,location,,,planMeta] = b;
+            const blockId = "blk-"+week.id+"-"+day+"-"+start;
+            let autoByTime = false;
+            if(week.dates){
+              const [eh,em] = end.split(":").map(Number);
+              const blockEnd = new Date(week.dates[i]); blockEnd.setHours(eh,em,0,0);
+              autoByTime = blockEnd <= now;
+            }
+            const done = isBlockDone(blockId, autoByTime);
+            clicks.push({ blockId, autoByTime, cat, location, blockDate, start, end, label, planMeta });
+            return agItemHtml(b, blockId, done);
+          }).join("")
+        : (dueList.length ? "" : `<p class="ag-empty">Nothing scheduled</p>`);
+      return `<section class="ag-day${isToday?" today":""}">
+        <h4>${DAYFULL[i]}, ${dateLabel}${isToday?` <span class="ag-today-tag">Today</span>`:""}</h4>
+        ${dueHtml ? `<div class="ag-duewrap">${dueHtml}</div>` : ""}
+        ${itemsHtml}
+      </section>`;
+    }).join("");
+
+    el.querySelectorAll(".duetag input[type=checkbox]").forEach(cb=>{
+      cb.addEventListener("change", ()=> toggleDone(cb.dataset.id));
+    });
+    el.querySelectorAll(".ag-item").forEach((row,idx)=>{
+      const c = clicks[idx];
+      row.querySelector(".ag-check").addEventListener("click", e=>{
+        e.stopPropagation();
+        toggleBlockDone(c.blockId, c.autoByTime);
+      });
+      if(c.cat==="study"){
+        row.style.cursor = "pointer";
+        row.addEventListener("click", ()=> openBlockModal(c.blockDate, c.start, c.end, c.label, c.planMeta));
+      } else if(c.location){
+        row.style.cursor = "pointer";
+        row.addEventListener("click", ()=> openLocationModal(c.label, c.location, c.blockDate, c.start, c.end));
+      }
+    });
   }
 
   // ---- Due tab: show/hide ungraded work, course filter, show/hide done —
