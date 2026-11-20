@@ -1,4 +1,4 @@
-const CACHE = "semcal-v2";
+const CACHE = "semcal-v3";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e=>{
@@ -17,34 +17,22 @@ self.addEventListener("fetch", e=>{
   const req = e.request;
   if(req.method !== "GET") return;
 
-  // Navigations (the HTML shell) go network-first: a stale cached page would
-  // otherwise keep showing up-to-date-looking but actually-stale UI/code for
-  // as long as this service worker instance keeps winning cache races.
-  if(req.mode === "navigate"){
-    e.respondWith(
-      fetch(req).then(res=>{
+  // Network-first for everything same-origin, not just HTML navigations.
+  // data.js/engine.js/index.html all ship together and change together —
+  // serving a cache-first engine.js alongside an already-updated
+  // network-first index.html is exactly how this broke once already: the
+  // page expects functions a stale cached engine.js doesn't export yet,
+  // throws on load, and every event listener below that point in the
+  // script never attaches (tabs stop responding, nothing finishes
+  // rendering). Falls back to cache only when the network is unreachable.
+  e.respondWith(
+    fetch(req).then(res=>{
+      if(res && (res.status===200 || res.type==="opaque")){
         const copy = res.clone();
         caches.open(CACHE).then(c=>c.put(req, copy));
-        return res;
-      }).catch(()=> caches.match(req))
-    );
-    return;
-  }
-
-  // Everything else (icons, manifest, fonts): cache-first, updating the
-  // cache in the background. Anything never fetched successfully simply
-  // isn't available offline yet.
-  e.respondWith(
-    caches.match(req).then(cached=>{
-      const network = fetch(req).then(res=>{
-        if(res && (res.status===200 || res.type==="opaque")){
-          const copy = res.clone();
-          caches.open(CACHE).then(c=>c.put(req, copy));
-        }
-        return res;
-      }).catch(()=>cached);
-      return cached || network;
-    })
+      }
+      return res;
+    }).catch(()=> caches.match(req))
   );
 });
 
