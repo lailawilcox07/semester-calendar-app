@@ -205,6 +205,51 @@
   .block.done{opacity:.5;}
   .block.done .l{text-decoration:line-through;}
 
+  /* ---- due tab (queens-semester-calendar style: grouped by recency,
+     course filter chips, status-cycle button) ---- */
+  .due-filters{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;}
+  .due-chip{
+    font-family:"Work Sans",sans-serif; font-size:12.5px; font-weight:600; padding:6px 12px;
+    border-radius:999px; border:1px solid var(--line); background:var(--surface); color:var(--ink);
+    cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+  }
+  .due-chip .dot{width:8px; height:8px; border-radius:50%; flex:none;}
+  .due-group{margin-bottom:16px;}
+  .due-group-head{font-size:13px; font-weight:700; margin:0 2px 6px;}
+  .due-group-head .count{color:var(--muted); font-weight:500;}
+  .due-group.overdue .due-group-head{color:var(--flag);}
+  .due-rows{list-style:none; padding:0; margin:0; background:var(--surface); border:1px solid var(--line); border-radius:12px; overflow:hidden;}
+  .due-row{display:grid; grid-template-columns:8px 1fr auto auto; gap:10px; align-items:center; padding:10px 12px; border-top:1px solid var(--line);}
+  .due-row:first-child{border-top:none;}
+  .due-row .dot{width:8px; height:8px; border-radius:50%; flex:none;}
+  .due-main{display:flex; flex-direction:column; font-size:13.5px; min-width:0;}
+  .due-meta{font-size:11.5px; color:var(--muted);}
+  .due-row.st-done .due-main{text-decoration:line-through; opacity:.55;}
+  .due-weight{font-size:11px; color:var(--muted); white-space:nowrap;}
+  .status-btn{
+    font-family:"Work Sans",sans-serif; font-size:11px; font-weight:700; border-radius:999px; padding:5px 10px;
+    min-width:84px; text-align:center; border:1px solid var(--line); background:var(--bg); color:var(--muted); cursor:pointer;
+  }
+  .status-btn.st-started{background:var(--study-tint); border-color:var(--study); color:var(--study);}
+  .status-btn.st-done{background:var(--meal-tint); border-color:var(--meal); color:var(--meal);}
+  .due-show-done{
+    font-family:"Work Sans",sans-serif; font-size:12.5px; font-weight:600; color:var(--muted);
+    background:none; border:none; cursor:pointer; padding:6px 2px; text-decoration:underline; text-decoration-style:dotted;
+  }
+  @media (max-width:480px){
+    .due-row{grid-template-columns:8px 1fr auto;}
+    .status-btn{grid-column:2/4; justify-self:start; margin-top:2px;}
+  }
+
+  /* ---- to-do tab: card sections (queens-semester-calendar style) ---- */
+  .section-card{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:14px;}
+  .section-card > h3{font-family:"Fraunces",serif; font-size:15px; font-weight:600; margin:0 0 8px;}
+  .section-card .task-group{margin-bottom:0;}
+  .section-sum-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;}
+  .section-sum-head h3{margin:0;}
+  .bar{height:8px; border-radius:4px; background:var(--line); overflow:hidden; margin:8px 0 2px;}
+  .bar-fill{height:100%; background:var(--class); border-radius:4px; transition:width .2s;}
+
   /* ---- todo / progress ---- */
   .ungraded-toggle{
     display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--muted);
@@ -779,7 +824,8 @@
     </label>`;
   }
 
-  // ---- Due tab: show/hide ungraded work (localStorage) ----
+  // ---- Due tab: show/hide ungraded work, course filter, show/hide done —
+  // all localStorage, style ported from queens-semester-calendar's Due tab ----
   const SHOW_UNGRADED_KEY = "semcal-show-ungraded-v1";
   function loadShowUngraded(){
     const raw = localStorage.getItem(SHOW_UNGRADED_KEY);
@@ -787,6 +833,49 @@
   }
   let showUngraded = loadShowUngraded();
 
+  const DUE_COURSE_KEY = "semcal-due-course-v1";
+  function loadDueCourse(){ try{ return localStorage.getItem(DUE_COURSE_KEY) || "all"; }catch(e){ return "all"; } }
+  let dueCourseFilter = loadDueCourse();
+  function setDueCourseFilter(c){ dueCourseFilter = c; try{ localStorage.setItem(DUE_COURSE_KEY, c); }catch(e){} }
+
+  const DUE_SHOWDONE_KEY = "semcal-due-showdone-v1";
+  function loadDueShowDone(){ try{ return localStorage.getItem(DUE_SHOWDONE_KEY)==="1"; }catch(e){ return false; } }
+  let dueShowDone = loadDueShowDone();
+  function setDueShowDone(v){ dueShowDone = v; try{ localStorage.setItem(DUE_SHOWDONE_KEY, v?"1":"0"); }catch(e){} }
+
+  // Not started / Started / Done, reusing the existing done+started stores
+  // as a single three-state cycle (one tap moves to the next state) instead
+  // of a separate checkbox and text-tap.
+  function dueStatus(id){ return isDone(id) ? "done" : isStarted(id) ? "started" : "todo"; }
+  function cycleDueStatus(id){
+    const st = dueStatus(id);
+    if(st==="done"){ setDone(id,false); setStarted(id,false); }
+    else if(st==="started"){ setDone(id,true); }
+    else { setStarted(id,true); }
+    refreshAll();
+  }
+  const DUE_STATUS_LABEL = { todo:"Not started", started:"Started", done:"Done" };
+  function dueRowHtml(item, today){
+    const date = resolveDeadlineDate(item);
+    const st = dueStatus(item.id);
+    const daysUntil = date ? Math.round((date-today)/86400000) : null;
+    const dateStr = date ? date.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}) : null;
+    const rel = daysUntil==null ? (item.text && item.text.length ? "Date not set yet" : "")
+      : daysUntil===0 ? "today" : daysUntil===1 ? "tomorrow" : daysUntil===-1 ? "1 day late"
+      : daysUntil<0 ? `${-daysUntil} days late` : `in ${daysUntil} days`;
+    const color = "var(--"+(COURSE_COLOR[item.course]||"class")+")";
+    const ungraded = item.graded===false;
+    const weightStr = ungraded ? "Ungraded" : (item.weight ? (Math.round(item.weight*10)/10)+"%" : "");
+    return `<li class="due-row st-${st}">
+      <span class="dot" style="background:${color}"></span>
+      <span class="due-main" style="color:${st==='done'?'':'var(--ink)'}">
+        <span><b style="color:${color}">${COURSE_NAMES[item.course]||item.course}</b> ${item.text}</span>
+        <span class="due-meta">${dateStr?dateStr+" · "+rel:rel}</span>
+      </span>
+      <span class="due-weight mono">${weightStr}</span>
+      <button type="button" class="status-btn st-${st}" data-cycle-id="${item.id}">${DUE_STATUS_LABEL[st]}</button>
+    </li>`;
+  }
   function renderDue(){
     const el = document.getElementById("duelist");
     const toggle = document.getElementById("showUngraded");
@@ -796,37 +885,54 @@
     // once one slips past its own date and is still undone, it surfaces
     // here as a catch-up flag (the real graded deadline it references, if
     // any, is already tracked on this tab in its own right).
-    const today0 = new Date(); today0.setHours(0,0,0,0);
-    const overdueFixed = allFixedItems().filter(i=> i.date<today0 && !isDone(i.id));
-    const visible = (showUngraded ? DEADLINES : DEADLINES.filter(i=> i.graded!==false)).concat(overdueFixed);
-    if(!visible.length){ el.innerHTML = `<div class="todo-empty">Nothing on the list.</div>`; return; }
+    const today = new Date(); today.setHours(0,0,0,0);
+    const overdueFixed = allFixedItems().filter(i=> i.date<today && !isDone(i.id));
+    let list = (showUngraded ? DEADLINES : DEADLINES.filter(i=> i.graded!==false)).concat(overdueFixed);
+    if(dueCourseFilter!=="all") list = list.filter(i=> i.course===dueCourseFilter);
 
-    const undone = visible.filter(i=>!isDone(i.id)).sort((a,b)=>{
-      const da = resolveDeadlineDate(a), db = resolveDeadlineDate(b);
-      return (da?da.getTime():Infinity) - (db?db.getTime():Infinity);
-    });
-    const done = visible.filter(i=>isDone(i.id)).sort((a,b)=>{
-      const da = resolveDeadlineDate(a), db = resolveDeadlineDate(b);
-      return (da?da.getTime():Infinity) - (db?db.getTime():Infinity);
-    });
+    const courseChips = `<div class="due-filters">
+      <button type="button" class="due-chip${dueCourseFilter==="all"?" on":""}" data-course-chip="all">All</button>
+      ${Object.keys(COURSE_NAMES).map(c=>
+        `<button type="button" class="due-chip${dueCourseFilter===c?" on":""}" data-course-chip="${c}" style="${dueCourseFilter===c?`background:var(--${COURSE_COLOR[c]});border-color:var(--${COURSE_COLOR[c]});color:var(--surface);`:""}">
+          <span class="dot" style="background:${dueCourseFilter===c?"currentColor":"var(--"+COURSE_COLOR[c]+")"}"></span>${COURSE_NAMES[c]}
+        </button>`).join("")}
+    </div>`;
 
-    let html = undone.map(i=> todoRowHtml(i,false)).join("");
-    if(done.length){
-      html += `<div class="todo-divider">Done</div>` + done.map(i=> todoRowHtml(i,false)).join("");
+    const hiddenDone = list.filter(i=> isDone(i.id)).length;
+    if(!dueShowDone) list = list.filter(i=> !isDone(i.id));
+
+    if(!list.length){
+      el.innerHTML = courseChips + `<div class="todo-empty">${hiddenDone?"Everything here is done.":"Nothing on the list."}</div>`
+        + (hiddenDone ? `<button type="button" class="due-show-done" data-toggle-done="1">Show ${hiddenDone} finished</button>` : "");
+    } else {
+      const groups = [
+        { name:"Overdue", test:(i,d)=> d && d<today },
+        { name:"This week", test:(i,d)=> d && d>=today && Math.round((d-today)/86400000)<=6 },
+        { name:"Next week", test:(i,d)=> d && Math.round((d-today)/86400000)>=7 && Math.round((d-today)/86400000)<=13 },
+        { name:"Later", test:(i,d)=> d && Math.round((d-today)/86400000)>=14 },
+        { name:"Date not set", test:(i,d)=> !d },
+      ];
+      const dated = list.map(i=> ({ i, d: resolveDeadlineDate(i) }));
+      const body = groups.map(g=>{
+        const items = dated.filter(({i,d})=> g.test(i,d));
+        if(!items.length) return "";
+        return `<div class="due-group${g.name==="Overdue"?" overdue":""}">
+          <div class="due-group-head">${g.name} <span class="count">${items.length}</span></div>
+          <ul class="due-rows">${items.map(({i})=> dueRowHtml(i,today)).join("")}</ul>
+        </div>`;
+      }).join("");
+      el.innerHTML = courseChips + body
+        + (hiddenDone || dueShowDone ? `<button type="button" class="due-show-done" data-toggle-done="${dueShowDone?"0":"1"}">${dueShowDone?"Hide finished work":`Show ${hiddenDone} finished`}</button>` : "");
     }
-    el.innerHTML = html;
-    el.querySelectorAll("input[type=checkbox]").forEach(cb=>{
-      cb.addEventListener("change", ()=> toggleDone(cb.dataset.id));
+
+    el.querySelectorAll(".due-chip").forEach(btn=>{
+      btn.addEventListener("click", ()=>{ setDueCourseFilter(btn.dataset.courseChip); renderDue(); });
     });
-    // Tapping the text (not the checkbox) toggles started/in-progress instead
-    // of marking done — prevent the label's default click-through to the
-    // checkbox so the two controls stay independent.
-    el.querySelectorAll(".todo-text[data-id]").forEach(span=>{
-      span.addEventListener("click", e=>{
-        e.preventDefault();
-        e.stopPropagation();
-        toggleStarted(span.dataset.id);
-      });
+    el.querySelectorAll("[data-toggle-done]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{ setDueShowDone(btn.dataset.toggleDone==="1"); renderDue(); });
+    });
+    el.querySelectorAll(".status-btn[data-cycle-id]").forEach(btn=>{
+      btn.addEventListener("click", ()=> cycleDueStatus(btn.dataset.cycleId));
     });
   }
 
@@ -960,6 +1066,34 @@
     });
     return out;
   }
+  // This week's (Mon-Sun) planned study minutes across all courses vs. done
+  // so far — the To-Do tab's "This week" bar, ported from
+  // queens-semester-calendar's weekly summary. Distinct from
+  // computeStudyPlanHours()'s per-course, whole-term totals used on the
+  // Progress tab.
+  function computeWeekStudyProgress(){
+    const today = new Date(); today.setHours(0,0,0,0);
+    const monday = new Date(today); monday.setDate(today.getDate()-((today.getDay()+6)%7));
+    let plannedMin=0, doneMin=0;
+    for(let k=0;k<7;k++){
+      const d = new Date(monday); d.setDate(monday.getDate()+k);
+      const week = resolveWeekForDate(d);
+      if(!week) continue;
+      const dayName = DAYS[(d.getDay()+6)%7];
+      const dayMin = buildDayBlocks(week, dayName).filter(b=>b[3]==="study")
+        .reduce((s,b)=> s+(toMin(b[1])-toMin(b[0])), 0);
+      plannedMin += dayMin;
+      if(d>today) continue;
+      const key = dateKey(d);
+      const plan = STUDY_PLAN[key];
+      if(plan && Array.isArray(plan.tasks) && plan.focus){
+        const tasks = plan.tasks||[];
+        let doneCount=0; tasks.forEach((t,i)=>{ if(isDone(taskItemId(key,i))) doneCount++; });
+        doneMin += dayMin * (tasks.length ? doneCount/tasks.length : 0);
+      }
+    }
+    return { plannedMin, doneMin };
+  }
   function nextWeekendDate(fromDate){
     const d = new Date(fromDate);
     do{ d.setDate(d.getDate()+1); } while(d.getDay()!==0 && d.getDay()!==6);
@@ -1037,25 +1171,32 @@
     const { dueGroups, habitsByCourse } = buildTaskGroups();
     const courseKeys = Object.keys(COURSE_NAMES).filter(c=> habitsByCourse[c] && habitsByCourse[c].length);
     const studyPlanHtml = studyPlanTodayHtml();
+    const week = computeWeekStudyProgress();
+    const weekPct = week.plannedMin ? Math.min(100, Math.round(week.doneMin/week.plannedMin*100)) : 0;
 
-    if(!dueGroups.length && !courseKeys.length && !studyPlanHtml){
-      el.innerHTML = `<div class="todo-empty">Nothing due soon enough to need study time yet — check back closer to your next deadline.</div>`;
-    } else {
-      let html = studyPlanHtml;
-      dueGroups.forEach(g=>{
+    let html = "";
+    if(studyPlanHtml) html += `<div class="section-card">${studyPlanHtml}</div>`;
+    if(week.plannedMin){
+      html += `<div class="section-card">
+        <div class="section-sum-head"><h3>This week</h3><span class="mono small">${(week.doneMin/60).toFixed(1)} of ${(week.plannedMin/60).toFixed(1)} h</span></div>
+        <div class="bar"><div class="bar-fill" style="width:${weekPct}%"></div></div>
+      </div>`;
+    }
+    if(dueGroups.length){
+      html += `<div class="section-card"><h3>Prep for upcoming work</h3>` + dueGroups.map(g=>{
         const color = "var(--"+(COURSE_COLOR[g.item.course]||"class")+")";
         const dateStr = g.date ? g.date.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}) : "";
-        html += taskGroupHtml(`${COURSE_NAMES[g.item.course]||g.item.course} · ${g.item.text}`, color, dateStr, g.tasks);
-      });
-      if(courseKeys.length){
-        html += `<div class="todo-divider">Recurring</div>`;
-        courseKeys.forEach(c=>{
-          const color = "var(--"+(COURSE_COLOR[c]||"class")+")";
-          html += taskGroupHtml(COURSE_NAMES[c], color, "", habitsByCourse[c]);
-        });
-      }
-      el.innerHTML = html;
+        return taskGroupHtml(`${COURSE_NAMES[g.item.course]||g.item.course} · ${g.item.text}`, color, dateStr, g.tasks);
+      }).join("") + `</div>`;
     }
+    if(courseKeys.length){
+      html += `<div class="section-card"><h3>Recurring</h3>` + courseKeys.map(c=>{
+        const color = "var(--"+(COURSE_COLOR[c]||"class")+")";
+        return taskGroupHtml(COURSE_NAMES[c], color, "", habitsByCourse[c]);
+      }).join("") + `</div>`;
+    }
+    if(!html) html = `<div class="todo-empty">Nothing due soon enough to need study time yet — check back closer to your next deadline.</div>`;
+    el.innerHTML = html;
     el.querySelectorAll("input[type=checkbox]").forEach(cb=>{
       cb.addEventListener("change", ()=>{
         const taskId = cb.dataset.taskid;
