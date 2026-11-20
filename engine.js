@@ -238,6 +238,10 @@
         label += " — " + tasks[pos];
         taskIdxs = [pos];
       }
+      // Task index 0 is that day's must-do (Update 3) — star whichever
+      // block actually carries it, so the calendar flags the same thing
+      // the To-Do tab's "must-do" tag does.
+      if(taskIdxs.indexOf(0)!==-1) label = "★ " + label;
       out[bi][2] = label;
       out[bi][6] = COURSE_COLOR[plan.focus];
       // Lets the block-detail modal show exactly this plan content instead

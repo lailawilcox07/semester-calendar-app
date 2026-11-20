@@ -1261,12 +1261,26 @@
     if(planMeta.kind==="focus"){
       if(!planMeta.taskIdxs || !planMeta.taskIdxs.length) return null;
       const courseLabel = COURSE_NAMES[plan.focus] || plan.focus;
-      return planMeta.taskIdxs.map(i=> ({
+      let out = planMeta.taskIdxs.map(i=> ({
         taskId: taskItemId(planMeta.key, i),
         text: plan.tasks[i],
         minutes: 0,
         item: { course: plan.focus, text: courseLabel+" — today's focus" },
       }));
+      // This is the block carrying today's must-do (task index 0, starred
+      // on the calendar) — also surface any undone carry-forward here,
+      // exactly as shown at the top of the To-Do tab's focus group, so
+      // the block and the To-Do tab always agree on today's full list.
+      if(planMeta.taskIdxs.indexOf(0)!==-1 && planMeta.key===dateKey(new Date())){
+        const carried = getCarriedTasks(planMeta.key).map(c=> ({
+          taskId: c.taskId,
+          text: `Carried over from ${new Date(c.fromKey+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})} — ${c.text}`,
+          minutes: 0,
+          item: { course: plan.focus, text: courseLabel+" — carried over" },
+        }));
+        out = carried.concat(out);
+      }
+      return out;
     }
     if(planMeta.kind==="slot"){
       if(!planMeta.slots || !planMeta.slots.length) return null;
