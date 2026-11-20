@@ -327,7 +327,16 @@
   // Returns per-category breakdown plus the course's running grade: earned
   // weight / graded weight so far (the usual "current grade" a gradebook
   // shows), not earned/100 (which would understate it before everything's in).
-  function computeCourseGrade(course, getGrade){
+  // getPredicted(itemId) => number|null, same id scheme as getGrade — the
+  // student's own guess for an item that isn't actually marked yet (ported
+  // from queens-semester-calendar's "predicted grades"). Only consulted
+  // for items with no real grade; a predicted value never overrides an
+  // actual one. For a bestOf category (e.g. MATH225's best-4-of-6
+  // quizzes), predicted and entered items are ranked together by whichever
+  // value they have ("effective"), since a student guessing at an
+  // unmarked quiz is still reasoning about whether it'll make their best 4.
+  function computeCourseGrade(course, getGrade, getPredicted){
+    getPredicted = getPredicted || (()=>null);
     const cats = (GRADES[course]||[]).map((cat,ci)=>{
       const items = cat.items.map((raw,ii)=>{
         const id = course+"::"+ci+"::"+ii;
@@ -336,28 +345,41 @@
         // how already-known real grades stay in sync across devices.
         const stored = getGrade(id);
         const grade = stored!=null ? stored : (raw.grade!=null ? raw.grade : null);
+        const predicted = grade==null ? getPredicted(id) : null;
         const { label, weight, date } = resolveGradeItem(raw);
-        return { id, label, weight, date, grade, status:gradeItemStatus(date, grade, !raw.dueId) };
+        const status = gradeItemStatus(date, grade, !raw.dueId);
+        return { id, label, weight, date, grade, predicted, status, effective: grade!=null ? grade : predicted };
       });
-      let earned=0, gradedWeight=0, totalWeight=0;
+      let earned=0, gradedWeight=0, predicted=0, predictedWeight=0, totalWeight=0;
       if(cat.bestOf){
         const perItemWeight = items.length ? items[0].weight : 0;
         totalWeight = perItemWeight * cat.bestOf.count;
-        const entered = items.filter(i=>i.status==="entered").sort((a,b)=> b.grade-a.grade);
-        entered.slice(0, cat.bestOf.count).forEach(i=>{ earned += i.weight*i.grade/100; gradedWeight += i.weight; });
+        const ranked = items.filter(i=>i.effective!=null).sort((a,b)=> b.effective-a.effective);
+        ranked.slice(0, cat.bestOf.count).forEach(i=>{
+          if(i.grade!=null){ earned += i.weight*i.grade/100; gradedWeight += i.weight; }
+          else { predicted += i.weight*i.predicted/100; predictedWeight += i.weight; }
+        });
       } else {
         items.forEach(i=>{
           totalWeight += i.weight;
           if(i.status==="entered"){ earned += i.weight*i.grade/100; gradedWeight += i.weight; }
+          else if(i.predicted!=null){ predicted += i.weight*i.predicted/100; predictedWeight += i.weight; }
         });
       }
-      return { name:cat.name, bestOf:cat.bestOf||null, items, earned, gradedWeight, totalWeight };
+      return { name:cat.name, bestOf:cat.bestOf||null, items, earned, gradedWeight, predicted, predictedWeight, totalWeight };
     });
     const earned = cats.reduce((s,c)=>s+c.earned,0);
     const gradedWeight = cats.reduce((s,c)=>s+c.gradedWeight,0);
+    const predicted = cats.reduce((s,c)=>s+c.predicted,0);
+    const predictedWeight = cats.reduce((s,c)=>s+c.predictedWeight,0);
     const totalWeight = cats.reduce((s,c)=>s+c.totalWeight,0);
+    const openWeight = Math.max(0, totalWeight-gradedWeight-predictedWeight);
     const currentGrade = gradedWeight>0 ? (earned/gradedWeight*100) : null;
-    return { categories:cats, earned, gradedWeight, totalWeight, currentGrade };
+    // What marks+predictions together project, assuming anything still
+    // fully open scores 0 — only meaningful once openWeight is 0 (nothing
+    // left unaddressed); the Grades tab only shows it in that case.
+    const projectedGrade = totalWeight>0 ? ((earned+predicted)/totalWeight*100) : null;
+    return { categories:cats, earned, gradedWeight, predicted, predictedWeight, openWeight, totalWeight, currentGrade, projectedGrade };
   }
 
   // Queen's official grading scale (same table used in the queens-semester-
@@ -370,13 +392,14 @@
     if(pct==null) return null;
     return (GRADE_SCALE.find(([min])=> pct>=min) || [0,"F"])[1];
   }
-  // What average is needed on a course's remaining (not-yet-graded) weight
-  // to land on a target letter grade's minimum %, given what's earned so
-  // far. null means there's no remaining weight to solve for.
+  // What average is needed on a course's remaining OPEN weight (neither
+  // graded nor predicted) to land on a target letter grade's minimum %,
+  // given what's earned so far plus any predictions already banked in.
+  // null means there's no open weight left to solve for.
   function neededForTarget(result, targetMin){
-    const remaining = result.totalWeight - result.gradedWeight;
+    const remaining = result.openWeight;
     if(remaining<=0) return null;
-    return ((targetMin/100)*result.totalWeight - result.earned) / remaining * 100;
+    return ((targetMin/100)*result.totalWeight - result.earned - (result.predicted||0)) / remaining * 100;
   }
 
   const engine = {

@@ -302,20 +302,24 @@
   .grade-bar{display:flex; height:10px; border-radius:5px; background:var(--line); overflow:hidden; margin:6px 0 8px;}
   .grade-bar-earned{background:var(--c);}
   .grade-bar-lost{background:var(--flag); opacity:.5;}
+  .grade-bar-pred{background:repeating-linear-gradient(135deg, var(--c) 0 3px, transparent 3px 6px); opacity:.6;}
   .grade-subline{font-size:11.5px; color:var(--muted); margin-bottom:10px;}
   .grade-target-row{margin:2px 0 6px; font-size:13px;}
   .grade-target-row select{
     font-family:"Work Sans",sans-serif; font-size:12.5px; margin-left:6px; padding:3px 6px;
     border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--ink);
   }
-  .grade-need{font-size:12.5px; background:var(--bg); border-radius:8px; padding:8px 10px; margin:0 0 10px; line-height:1.4;}
+  .grade-need{font-size:12.5px; background:var(--bg); border-radius:8px; padding:8px 10px; margin:0 0 6px; line-height:1.4;}
+  .grade-cols-head{
+    display:flex; justify-content:flex-end; gap:14px; font-size:10px; text-transform:uppercase;
+    letter-spacing:.05em; color:var(--muted); font-weight:700; padding:0 0 2px;
+  }
+  .grade-cols-head span{width:84px; text-align:right;}
   .grade-cat{margin-top:10px;}
   .grade-cat-head{display:flex; justify-content:space-between; align-items:baseline; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; margin-bottom:5px;}
-  .grade-item{
-    display:flex; align-items:center; gap:8px; padding:7px 0; font-size:13px;
-    border-top:1px solid var(--line);
-  }
+  .grade-item{padding:7px 0; font-size:13px; border-top:1px solid var(--line);}
   .grade-item:first-child{border-top:none;}
+  .grade-item-top{display:flex; align-items:center; gap:8px; margin-bottom:5px;}
   .grade-item-label{flex:1;}
   .grade-item-weight{font-size:11px; color:var(--muted); flex:none; white-space:nowrap;}
   .grade-badge{
@@ -325,12 +329,22 @@
   .grade-badge.entered{background:var(--meal-tint); color:var(--meal);}
   .grade-badge.pending{background:var(--flag-tint); color:var(--flag);}
   .grade-badge.upcoming{background:var(--line); color:var(--muted);}
+  .grade-item-inputs{display:flex; justify-content:flex-end; gap:14px;}
+  .grade-in-field{display:flex; align-items:center; justify-content:flex-end; gap:4px; width:84px; color:var(--muted);}
+  .grade-in-tag{display:none;}
+  .grade-in-frozen{font-size:12.5px; color:var(--muted);}
   .grade-input{
     width:52px; flex:none; font-family:"IBM Plex Mono",monospace; font-size:12.5px; text-align:right;
     border:1px solid var(--line); border-radius:6px; padding:4px 5px; background:var(--bg); color:var(--ink);
   }
   .grade-input:disabled{opacity:.5;}
+  .grade-input.pred{border-style:dashed; background:transparent; color:var(--c);}
+  .grade-input.pred::placeholder{color:var(--c); opacity:.7;}
   .grade-pct-sign{font-size:12px; color:var(--muted); flex:none; margin-left:-4px;}
+  @media (max-width:420px){
+    .grade-cols-head span, .grade-in-field{width:68px;}
+    .grade-input{width:40px;}
+  }
 
   /* ---- block detail modal ---- */
   .modal-backdrop{
@@ -604,6 +618,20 @@
   function setGrade(id, val){
     if(val==null || val==="") delete gradesState[id]; else gradesState[id]=val;
     try{ localStorage.setItem(GRADES_KEY, JSON.stringify(gradesState)); }catch(e){}
+  }
+
+  // ---- predicted-grade store (localStorage) — same id scheme as the real
+  // grades store, but for the student's own guess at an item that isn't
+  // marked yet (ported from queens-semester-calendar's "predicted grades").
+  // Never overrides a real grade; computeCourseGrade() only ever consults
+  // this for an item that has no real grade of its own.
+  const PREDICTED_KEY = "semcal-predicted-v1";
+  function loadPredicted(){ try{ return JSON.parse(localStorage.getItem(PREDICTED_KEY)||"{}"); }catch(e){ return {}; } }
+  let predictedState = loadPredicted();
+  function getPredicted(id){ return predictedState[id]!=null ? predictedState[id] : null; }
+  function setPredicted(id, val){
+    if(val==null || val==="") delete predictedState[id]; else predictedState[id]=val;
+    try{ localStorage.setItem(PREDICTED_KEY, JSON.stringify(predictedState)); }catch(e){}
   }
 
   // ---- grade target store (localStorage) — keyed by course, the letter
@@ -1146,16 +1174,36 @@
   }
 
   // ---- grades tab ----
-  function gradeItemRowHtml(item){
+  // Two input columns — Predicted and Actual — ported from
+  // queens-semester-calendar's "predicted grades". Once an item is
+  // actually marked, its predicted value (if any) just freezes as plain
+  // text instead of staying editable, since it's no longer relevant.
+  function gradeItemRowHtml(item, needHint){
     const disabled = item.status==="upcoming";
-    const val = item.grade!=null ? item.grade : "";
+    const entered = item.status==="entered";
+    const actualVal = item.grade!=null ? item.grade : "";
+    const predictedVal = item.predicted!=null ? item.predicted : "";
     return `<div class="grade-item">
-      <span class="grade-badge ${item.status}">${item.status}</span>
-      <span class="grade-item-label">${item.label}</span>
-      <span class="grade-item-weight mono">${item.weight}%</span>
-      <input type="number" class="grade-input" inputmode="decimal" min="0" max="100" step="0.01"
-        data-gradeid="${item.id}" value="${val}" placeholder="—" ${disabled?"disabled":""}>
-      <span class="grade-pct-sign">%</span>
+      <div class="grade-item-top">
+        <span class="grade-badge ${item.status}">${item.status}</span>
+        <span class="grade-item-label">${item.label}</span>
+        <span class="grade-item-weight mono">${item.weight}%</span>
+      </div>
+      <div class="grade-item-inputs">
+        <label class="grade-in-field pred">
+          <span class="grade-in-tag">Predicted</span>
+          ${entered
+            ? `<span class="grade-in-frozen mono">${predictedVal!==""?predictedVal+"%":"—"}</span>`
+            : `<input type="number" class="grade-input pred" inputmode="decimal" min="0" max="100" step="1"
+                data-predictid="${item.id}" value="${predictedVal}" placeholder="${needHint||"—"}"><span class="grade-pct-sign">%</span>`}
+        </label>
+        <label class="grade-in-field actual">
+          <span class="grade-in-tag">Actual</span>
+          <input type="number" class="grade-input" inputmode="decimal" min="0" max="100" step="0.01"
+            data-gradeid="${item.id}" value="${actualVal}" placeholder="—" ${disabled?"disabled":""}>
+          <span class="grade-pct-sign">%</span>
+        </label>
+      </div>
     </div>`;
   }
   // Target-grade selector options: Queen's letter grades 50%+, matching
@@ -1164,27 +1212,36 @@
   function renderGrades(){
     const el = document.getElementById("gradeslist");
     const courses = Object.keys(COURSE_NAMES);
-    el.innerHTML = courses.map(c=>{
-      const result = computeCourseGrade(c, getGrade);
+    const intro = `<p style="color:var(--muted); font-size:12.5px; margin:0 0 4px;">Enter marks as they come back. For work that isn't marked yet, type the mark you think you'll realistically get — the blank boxes show what you'd need on the rest to hit your goal.</p>`;
+    el.innerHTML = intro + courses.map(c=>{
+      const result = computeCourseGrade(c, getGrade, getPredicted);
       const colorVar = COURSE_COLOR[c];
       const target = getTarget(c);
-      const remaining = result.totalWeight - result.gradedWeight;
+      const targetLetter = letterGrade(target);
+      const goalPts = target/100*result.totalWeight;
       const lost = result.gradedWeight - result.earned;
-      const earnedPct = result.totalWeight ? (result.earned/result.totalWeight*100) : 0;
-      const lostPct = result.totalWeight ? (lost/result.totalWeight*100) : 0;
+      const pct = x => result.totalWeight ? (x/result.totalWeight*100) : 0;
 
-      let need;
+      let need, needHint = "";
       if(!result.totalWeight) need = "No weights yet.";
-      else if(remaining<=0){
+      else if(!result.predictedWeight && result.openWeight<=0){
         need = result.currentGrade!=null
-          ? `All graded. Final mark: <b>${result.currentGrade.toFixed(1)}%</b> (${letterGrade(result.currentGrade)}).`
+          ? `All marked. Final mark: <b>${result.projectedGrade.toFixed(1)}%</b> (${letterGrade(result.projectedGrade)}).`
           : "No weights yet.";
-      } else {
+      } else if(result.openWeight>0){
         const req = neededForTarget(result, target);
-        const targetLetter = letterGrade(target);
-        need = req<=0 ? `You've already locked in ${targetLetter} or better.`
-          : req>100 ? `${targetLetter} isn't reachable with the work left — you'd need ${req.toFixed(1)}% on the remaining ${remaining.toFixed(1)}%.`
-          : `You need an average of <b>${req.toFixed(1)}%</b> on the remaining ${remaining.toFixed(1)}% of the course.`;
+        const base = result.predictedWeight ? "With your predictions, you need" : "You need";
+        need = req<=0 ? `${result.predictedWeight?"With your predictions, you've":"You've"} already locked in ${targetLetter} or better.`
+          : req>100 ? `${targetLetter} isn't reachable with the work left${result.predictedWeight?" with these predictions":""} — you'd need ${req.toFixed(1)}% on the remaining ${result.openWeight.toFixed(1)}%.${result.predictedWeight?" Try raising a prediction you think you can beat.":""}`
+          : `${base} an average of <b>${req.toFixed(1)}%</b> on the remaining ${result.openWeight.toFixed(1)}% of the course.`;
+        if(req!=null && req>0 && req<=100) needHint = Math.ceil(req);
+      } else {
+        // Nothing open, but not everything is actually marked yet — show
+        // where the predictions currently project to land.
+        const gap = target - result.projectedGrade;
+        need = gap<=0
+          ? `Your predictions put you at <b>${result.projectedGrade.toFixed(1)}%</b> (${letterGrade(result.projectedGrade)}). That reaches ${targetLetter}.`
+          : `Your predictions put you at <b>${result.projectedGrade.toFixed(1)}%</b> (${letterGrade(result.projectedGrade)}), ${gap.toFixed(1)}% short of ${targetLetter}. You'd need about ${(gap*result.totalWeight/Math.max(1,result.predictedWeight)).toFixed(1)}% more on each predicted item.`;
       }
 
       return `<div class="grade-card" style="--c:var(--${colorVar}); --ct:var(--${colorVar}-tint);">
@@ -1192,23 +1249,24 @@
           <span class="grade-course-name" style="color:var(--${colorVar})">${COURSE_NAMES[c]}</span>
           <span class="grade-current">${result.currentGrade!=null
             ? `<b>${result.currentGrade.toFixed(1)}%</b> <span class="grade-letter">${letterGrade(result.currentGrade)}</span>`
-            : `<span style="color:var(--muted); font-size:12.5px;">No grades yet</span>`}</span>
+            : `<span style="color:var(--muted); font-size:12.5px;">No marks yet</span>`}</span>
         </div>
-        <div class="grade-bar" aria-label="${result.earned.toFixed(1)}% earned, ${lost.toFixed(1)}% lost, ${Math.max(0,remaining).toFixed(1)}% still to come">
-          <div class="grade-bar-earned" style="width:${earnedPct}%"></div><div class="grade-bar-lost" style="width:${lostPct}%"></div>
+        <div class="grade-bar" aria-label="${result.earned.toFixed(1)}% earned, ${lost.toFixed(1)}% lost, ${result.predicted.toFixed(1)}% predicted, ${result.openWeight.toFixed(1)}% still open">
+          <div class="grade-bar-earned" style="width:${pct(result.earned)}%"></div><div class="grade-bar-lost" style="width:${pct(lost)}%"></div><div class="grade-bar-pred" style="width:${pct(result.predicted)}%"></div>
         </div>
-        <div class="grade-subline">${Math.round(result.gradedWeight)}% of the course graded · ${Math.round(result.earned)}% earned so far</div>
+        <div class="grade-subline">${Math.round(result.gradedWeight)}% marked · ${Math.round(result.earned)}% earned${result.predictedWeight?` · ${Math.round(result.predictedWeight)}% predicted`:""}</div>
         <div class="grade-target-row">Aiming for
           <select data-target-course="${c}">${GRADE_TARGETS.map(([min,l])=>
             `<option value="${min}" ${min===target?"selected":""}>${l} (${min}%+)</option>`).join("")}</select>
         </div>
         <div class="grade-need">${need}</div>
+        <div class="grade-cols-head"><span></span><span>Predicted</span><span>Actual</span></div>
         ${result.categories.map(cat=> `<div class="grade-cat">
           <div class="grade-cat-head">
             <span>${cat.name}${cat.bestOf?` (best ${cat.bestOf.count} of ${cat.bestOf.of})`:""}</span>
             <span>${Math.round(cat.totalWeight)}%</span>
           </div>
-          ${cat.items.map(gradeItemRowHtml).join("")}
+          ${cat.items.map(item=>gradeItemRowHtml(item, needHint)).join("")}
         </div>`).join("")}
       </div>`;
     }).join("") + `<div style="color:var(--muted); font-size:11.5px; padding:0 4px;">Letter grades use the Queen's grading scale. Your syllabus decides how marks are combined, so check it for drop-the-lowest rules or alternative grading schemes.</div>`;
@@ -1218,13 +1276,23 @@
         renderGrades();
       });
     });
-    el.querySelectorAll(".grade-input").forEach(inp=>{
+    el.querySelectorAll(".grade-input:not(.pred)").forEach(inp=>{
       inp.addEventListener("change", ()=>{
         const raw = inp.value.trim();
         let val = raw==="" ? null : Number(raw);
         if(val!=null && !isNaN(val)) val = Math.max(0, Math.min(100, val));
         else if(val!=null) val = null; // non-numeric garbage — treat as cleared
         setGrade(inp.dataset.gradeid, val);
+        renderGrades();
+      });
+    });
+    el.querySelectorAll(".grade-input.pred").forEach(inp=>{
+      inp.addEventListener("change", ()=>{
+        const raw = inp.value.trim();
+        let val = raw==="" ? null : Number(raw);
+        if(val!=null && !isNaN(val)) val = Math.max(0, Math.min(100, val));
+        else if(val!=null) val = null;
+        setPredicted(inp.dataset.predictid, val);
         renderGrades();
       });
     });
