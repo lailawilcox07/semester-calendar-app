@@ -376,7 +376,7 @@
       crunch:true },
 
     { id:"w12", label:"Wk 12 · Nov 30", range:"Nov 30–Dec 4", dates:weekDates(2026,10,30),
-      note:"MATH 225 Quiz 6 (Dec 3, the last one — best 4 of 6 count) lands right before BIOL closes out its term work: Lecture Quiz 4 (Fri) and the final DSM batch (Sat). Final exam dates should be posted on SOLUS by now — once confirmed, come back and block review time in the Sunday planning slot.",
+      note:"MATH 225 Quiz 6 (Dec 3, the last one — best 4 of 6 count) lands right before BIOL closes out its term work: Lecture Quiz 4 (Fri) and the final DSM batch (Sat). Final exam dates should be posted on SOLUS by now — once confirmed, come back and block review time in the Sunday planning slot. <b>Ultimate's season is over</b> (last game was Nov 29) — Sunday evening (Dec 6) reverts to the pre-season routine. Thursday's Volleyball (Dec 3) is its last game this term.",
       due:{
         Mon:[{text:"PHYS 242 Problem Set 8 due", weight:2}],
         Fri:[
@@ -388,7 +388,14 @@
       overrides:[
         {day:"Thu", match:"MATH 225 — Tutorial", flag:true, append:" — Quiz 6", weight:10},
         {day:"Thu", match:"BIOL 102 — Lab", cancel:true},
-      ], crunch:false },
+      ],
+      dayOverrides:[
+        // Ultimate's season ended Nov 29 — this week's Sunday (Dec 6)
+        // reverts to the pre-season evening routine.
+        {day:"Sun", start:"19:00", end:"21:30", label:"Protected downtime", cat:"downtime"},
+        {day:"Sun", start:"21:30", end:"24:00", label:"Wind-down", cat:"sleep"},
+      ],
+      crunch:false },
 
     { id:"w13", label:"Study week · Dec 7", range:"Dec 7–13", dates:weekDates(2026,11,7), noClasses:true,
       note:"No classes except a <b>PHYS 242 extra review session</b> Tue Dec 8 — one hour in the lecture slot, one hour in the tutorial slot, run on the Wednesday schedule. Otherwise fully open for exam prep — see the catch-up plan for each day's focus.",
@@ -396,6 +403,11 @@
       dayOverrides:[
         {day:"Tue", start:"12:20", end:"13:20", label:"PHYS 242 — Review Session (Lecture slot)", cat:"class", location:"Stirling Hall AUD"},
         {day:"Tue", start:"14:20", end:"15:20", label:"PHYS 242 — Review Session (Tutorial slot)", cat:"class", location:"Mackintosh-Corry Hall B201"},
+        // Ultimate's season ended Nov 29 — noClasses only swaps weekdays to
+        // the no-class template (Sat/Sun deliberately keep the normal
+        // weekend routine), so Sunday's game needs its own reversion here.
+        {day:"Sun", start:"19:00", end:"21:30", label:"Protected downtime", cat:"downtime"},
+        {day:"Sun", start:"21:30", end:"24:00", label:"Wind-down", cat:"sleep"},
       ],
       crunch:true },
 
@@ -406,6 +418,9 @@
         {day:"Wed", start:"09:00", end:"11:00", label:"BIOL 102 — FINAL EXAM", cat:"exam"},
         {day:"Fri", start:"14:00", end:"17:00", label:"MATH 225 — FINAL EXAM", cat:"exam"},
         {day:"Sat", start:"09:00", end:"12:00", label:"MATH 112 — FINAL EXAM", cat:"exam"},
+        // Ultimate's season ended Nov 29 (see note on w13's dayOverrides).
+        {day:"Sun", start:"19:00", end:"21:30", label:"Protected downtime", cat:"downtime"},
+        {day:"Sun", start:"21:30", end:"24:00", label:"Wind-down", cat:"sleep"},
       ],
       crunch:true },
 
@@ -415,6 +430,9 @@
       dayOverrides:[
         {day:"Tue", start:"09:00", end:"12:00", label:"COGS 100 — FINAL EXAM", cat:"exam"},
         {day:"Tue", start:"14:00", end:"17:00", label:"PHYS 242 — FINAL EXAM", cat:"exam"},
+        // Ultimate's season ended Nov 29 (see note on w13's dayOverrides).
+        {day:"Sun", start:"19:00", end:"21:30", label:"Protected downtime", cat:"downtime"},
+        {day:"Sun", start:"21:30", end:"24:00", label:"Wind-down", cat:"sleep"},
       ],
       crunch:true },
   ];
