@@ -360,6 +360,25 @@
     return { categories:cats, earned, gradedWeight, totalWeight, currentGrade };
   }
 
+  // Queen's official grading scale (same table used in the queens-semester-
+  // calendar app and the real gradebook this file's GRADES data came from).
+  const GRADE_SCALE = [
+    [90,"A+"], [85,"A"], [80,"A-"], [77,"B+"], [73,"B"], [70,"B-"],
+    [67,"C+"], [63,"C"], [60,"C-"], [57,"D+"], [53,"D"], [50,"D-"], [0,"F"],
+  ];
+  function letterGrade(pct){
+    if(pct==null) return null;
+    return (GRADE_SCALE.find(([min])=> pct>=min) || [0,"F"])[1];
+  }
+  // What average is needed on a course's remaining (not-yet-graded) weight
+  // to land on a target letter grade's minimum %, given what's earned so
+  // far. null means there's no remaining weight to solve for.
+  function neededForTarget(result, targetMin){
+    const remaining = result.totalWeight - result.gradedWeight;
+    if(remaining<=0) return null;
+    return ((targetMin/100)*result.totalWeight - result.earned) / remaining * 100;
+  }
+
   const engine = {
     // re-exported data, so one require()/one <script> gets everything
     base, noClassDay, weeks, examDates, COURSE_NAMES, COURSE_COLOR, FINAL_WEIGHT, WEEKLY_HABITS, DAILY_HABITS, TASKS, GRADES, STUDY_PLAN, STUDY_PLAN_TARGETS,
@@ -371,6 +390,7 @@
     periodStartFor, genericTasks, getTasks, leadDays, priorityScore,
     spliceBlock, applyStudyPlan, applySlotPlan, applyFocusPlan, buildDayBlocks, resolveWeekForDate,
     resolveGradeItem, gradeItemStatus, computeCourseGrade,
+    GRADE_SCALE, letterGrade, neededForTarget,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = engine;
   else root.ENGINE = engine;

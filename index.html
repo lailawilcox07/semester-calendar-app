@@ -269,11 +269,22 @@
 
   /* ---- grades tab ---- */
   .gradeslist{display:flex; flex-direction:column; gap:14px;}
-  .grade-card{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px;}
-  .grade-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px; gap:10px;}
+  .grade-card{background:var(--surface); border:1px solid var(--line); border-top:4px solid var(--c); border-radius:12px; padding:14px 16px;}
+  .grade-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px; gap:10px; flex-wrap:wrap;}
   .grade-course-name{font-family:"Fraunces",serif; font-size:16px; font-weight:600;}
-  .grade-current{font-size:15px; font-weight:700; font-family:"IBM Plex Mono",monospace;}
+  .grade-current{font-size:15px; display:flex; align-items:baseline; gap:6px;}
+  .grade-current b{font-family:"IBM Plex Mono",monospace; font-weight:700;}
+  .grade-letter{font-family:"Fraunces",serif; font-weight:600; font-size:13px; background:var(--ct); color:var(--c); border-radius:6px; padding:1px 7px;}
+  .grade-bar{display:flex; height:10px; border-radius:5px; background:var(--line); overflow:hidden; margin:6px 0 8px;}
+  .grade-bar-earned{background:var(--c);}
+  .grade-bar-lost{background:var(--flag); opacity:.5;}
   .grade-subline{font-size:11.5px; color:var(--muted); margin-bottom:10px;}
+  .grade-target-row{margin:2px 0 6px; font-size:13px;}
+  .grade-target-row select{
+    font-family:"Work Sans",sans-serif; font-size:12.5px; margin-left:6px; padding:3px 6px;
+    border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--ink);
+  }
+  .grade-need{font-size:12.5px; background:var(--bg); border-radius:8px; padding:8px 10px; margin:0 0 10px; line-height:1.4;}
   .grade-cat{margin-top:10px;}
   .grade-cat-head{display:flex; justify-content:space-between; align-items:baseline; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; margin-bottom:5px;}
   .grade-item{
@@ -423,7 +434,8 @@
     WEEKLY_HABITS, DAILY_HABITS, TASKS, DEADLINES, GRADES, STUDY_PLAN, STUDY_PLAN_TARGETS,
     buildDeadlines, resolveDeadlineDate, periodStartFor, genericTasks, getTasks,
     leadDays, priorityScore, spliceBlock, buildDayBlocks, resolveWeekForDate,
-    resolveGradeItem, gradeItemStatus, computeCourseGrade } = window.ENGINE;
+    resolveGradeItem, gradeItemStatus, computeCourseGrade,
+    GRADE_SCALE, letterGrade, neededForTarget } = window.ENGINE;
   const PPM = 1.4;             // pixels per minute
   const HOUR_PX = 60*PPM;
 
@@ -573,6 +585,18 @@
   function setGrade(id, val){
     if(val==null || val==="") delete gradesState[id]; else gradesState[id]=val;
     try{ localStorage.setItem(GRADES_KEY, JSON.stringify(gradesState)); }catch(e){}
+  }
+
+  // ---- grade target store (localStorage) — keyed by course, the letter
+  // grade (its minimum %) each course is aiming for, same style as
+  // queens-semester-calendar's Grades tab ----
+  const TARGET_KEY = "semcal-grade-target-v1";
+  function loadTargets(){ try{ return JSON.parse(localStorage.getItem(TARGET_KEY)||"{}"); }catch(e){ return {}; } }
+  let targetState = loadTargets();
+  function getTarget(course){ return targetState[course]!=null ? targetState[course] : 80; }
+  function setTarget(course, min){
+    targetState[course] = min;
+    try{ localStorage.setItem(TARGET_KEY, JSON.stringify(targetState)); }catch(e){}
   }
 
   // Calendar blocks: past ones are checked by default (the time already happened),
@@ -1111,19 +1135,51 @@
       <span class="grade-pct-sign">%</span>
     </div>`;
   }
+  // Target-grade selector options: Queen's letter grades 50%+, matching
+  // queens-semester-calendar's Grades tab exactly.
+  const GRADE_TARGETS = GRADE_SCALE.filter(([min])=>min>=50);
   function renderGrades(){
     const el = document.getElementById("gradeslist");
     const courses = Object.keys(COURSE_NAMES);
     el.innerHTML = courses.map(c=>{
       const result = computeCourseGrade(c, getGrade);
-      const color = "var(--"+COURSE_COLOR[c]+")";
-      const currentStr = result.currentGrade!=null ? result.currentGrade.toFixed(2)+"%" : "—";
-      return `<div class="grade-card">
+      const colorVar = COURSE_COLOR[c];
+      const target = getTarget(c);
+      const remaining = result.totalWeight - result.gradedWeight;
+      const lost = result.gradedWeight - result.earned;
+      const earnedPct = result.totalWeight ? (result.earned/result.totalWeight*100) : 0;
+      const lostPct = result.totalWeight ? (lost/result.totalWeight*100) : 0;
+
+      let need;
+      if(!result.totalWeight) need = "No weights yet.";
+      else if(remaining<=0){
+        need = result.currentGrade!=null
+          ? `All graded. Final mark: <b>${result.currentGrade.toFixed(1)}%</b> (${letterGrade(result.currentGrade)}).`
+          : "No weights yet.";
+      } else {
+        const req = neededForTarget(result, target);
+        const targetLetter = letterGrade(target);
+        need = req<=0 ? `You've already locked in ${targetLetter} or better.`
+          : req>100 ? `${targetLetter} isn't reachable with the work left — you'd need ${req.toFixed(1)}% on the remaining ${remaining.toFixed(1)}%.`
+          : `You need an average of <b>${req.toFixed(1)}%</b> on the remaining ${remaining.toFixed(1)}% of the course.`;
+      }
+
+      return `<div class="grade-card" style="--c:var(--${colorVar}); --ct:var(--${colorVar}-tint);">
         <div class="grade-head">
-          <span class="grade-course-name" style="color:${color}">${COURSE_NAMES[c]}</span>
-          <span class="grade-current">${currentStr}</span>
+          <span class="grade-course-name" style="color:var(--${colorVar})">${COURSE_NAMES[c]}</span>
+          <span class="grade-current">${result.currentGrade!=null
+            ? `<b>${result.currentGrade.toFixed(1)}%</b> <span class="grade-letter">${letterGrade(result.currentGrade)}</span>`
+            : `<span style="color:var(--muted); font-size:12.5px;">No grades yet</span>`}</span>
         </div>
-        <div class="grade-subline">Based on ${Math.round(result.gradedWeight)}% of ${Math.round(result.totalWeight)}% graded so far</div>
+        <div class="grade-bar" aria-label="${result.earned.toFixed(1)}% earned, ${lost.toFixed(1)}% lost, ${Math.max(0,remaining).toFixed(1)}% still to come">
+          <div class="grade-bar-earned" style="width:${earnedPct}%"></div><div class="grade-bar-lost" style="width:${lostPct}%"></div>
+        </div>
+        <div class="grade-subline">${Math.round(result.gradedWeight)}% of the course graded · ${Math.round(result.earned)}% earned so far</div>
+        <div class="grade-target-row">Aiming for
+          <select data-target-course="${c}">${GRADE_TARGETS.map(([min,l])=>
+            `<option value="${min}" ${min===target?"selected":""}>${l} (${min}%+)</option>`).join("")}</select>
+        </div>
+        <div class="grade-need">${need}</div>
         ${result.categories.map(cat=> `<div class="grade-cat">
           <div class="grade-cat-head">
             <span>${cat.name}${cat.bestOf?` (best ${cat.bestOf.count} of ${cat.bestOf.of})`:""}</span>
@@ -1132,7 +1188,13 @@
           ${cat.items.map(gradeItemRowHtml).join("")}
         </div>`).join("")}
       </div>`;
-    }).join("");
+    }).join("") + `<div style="color:var(--muted); font-size:11.5px; padding:0 4px;">Letter grades use the Queen's grading scale. Your syllabus decides how marks are combined, so check it for drop-the-lowest rules or alternative grading schemes.</div>`;
+    el.querySelectorAll("select[data-target-course]").forEach(sel=>{
+      sel.addEventListener("change", ()=>{
+        setTarget(sel.dataset.targetCourse, Number(sel.value));
+        renderGrades();
+      });
+    });
     el.querySelectorAll(".grade-input").forEach(inp=>{
       inp.addEventListener("change", ()=>{
         const raw = inp.value.trim();
