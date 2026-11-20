@@ -864,6 +864,10 @@
   // for undone tasks ----
   function fixedItemId(key,idx){ return "studyplan-fixed-"+key+"-"+idx; }
   function taskItemId(key,idx){ return "studyplan-task-"+key+"-"+idx; }
+  // Nov 14-19 was retired on Update 3 (Nov 20) rather than carried forward —
+  // carry-forward never reaches back before this date, even if an earlier
+  // entry were ever re-added to STUDY_PLAN.
+  const STUDY_PLAN_START_KEY = "2026-11-20";
   function focusPlanEntries(){
     return Object.keys(STUDY_PLAN)
       .filter(k=> Array.isArray(STUDY_PLAN[k].tasks))
@@ -897,7 +901,7 @@
     if(!currentOcc || currentOcc.key!==todayKey) return [];
     const carried = [];
     sameFocus.forEach(e=>{
-      if(e.key>=todayKey) return;
+      if(e.key>=todayKey || e.key<STUDY_PLAN_START_KEY) return;
       (e.plan.tasks||[]).forEach((t,i)=>{
         const taskId = taskItemId(e.key,i);
         if(!isDone(taskId)) carried.push({ taskId, text:t, fromKey:e.key });
@@ -937,12 +941,12 @@
     do{ d.setDate(d.getDate()+1); } while(d.getDay()!==0 && d.getDay()!==6);
     return d;
   }
-  function studyTaskRowHtml(taskId, text, color){
+  function studyTaskRowHtml(taskId, text, color, mustDo){
     const done = isDone(taskId);
     const started = !done && isStarted(taskId);
     return `<label class="todo-row${done?" done":""}${started?" started":""}">
       <input type="checkbox" data-taskid="${taskId}" ${done?"checked":""} style="accent-color:${color}">
-      <span class="todo-text" data-id="${taskId}">${text}</span>
+      <span class="todo-text" data-id="${taskId}">${text}${mustDo?'<span class="task-urgent">must-do</span>':""}</span>
     </label>`;
   }
   // Today's slice of the catch-up study plan (data.js STUDY_PLAN), as its
@@ -962,7 +966,11 @@
       let rows = carried.map(c=>
         studyTaskRowHtml(c.taskId, `Carried over from ${new Date(c.fromKey+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})} — ${c.text}`, color)
       ).join("");
-      rows += plan.tasks.map((t,i)=> studyTaskRowHtml(taskItemId(key,i), t, color)).join("");
+      // The first task of the day is the must-do: tagged, and once it's
+      // done the day counts "on track" regardless of what else carries
+      // forward.
+      rows += plan.tasks.map((t,i)=> studyTaskRowHtml(taskItemId(key,i), t, color, i===0)).join("");
+      const onTrack = plan.tasks.length>0 && isDone(taskItemId(key,0));
       const fixedRows = (plan.fixed||[]).map((f,idx)=>
         studyTaskRowHtml(fixedItemId(key,idx), f.text, "var(--muted)")
       ).join("");
@@ -974,8 +982,9 @@
       }
       if(!rows && !fixedRows) return "";
       const headLabel = plan.focus ? `${COURSE_NAMES[plan.focus]||plan.focus} — today's focus` : "Today";
+      const onTrackBadge = onTrack ? ` <span style="color:var(--meal); font-weight:700; font-size:11px;">✓ On track</span>` : "";
       return `<div class="task-group">
-        <div class="task-group-head" style="color:${color}"><span>${headLabel}</span></div>
+        <div class="task-group-head" style="color:${color}"><span>${headLabel}</span>${onTrackBadge}</div>
         ${rows}
         ${suggestion}
         ${fixedRows ? `<div class="task-group-head" style="color:var(--muted); font-size:11px; margin-top:8px;"><span>Also on your radar today</span></div>${fixedRows}` : ""}
