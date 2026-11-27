@@ -376,7 +376,7 @@
       crunch:true },
 
     { id:"w12", label:"Wk 12 · Nov 30", range:"Nov 30–Dec 4", dates:weekDates(2026,10,30),
-      note:"MATH 225 Quiz 6 (Dec 3, the last one — best 4 of 6 count) lands right before BIOL closes out its term work: Lecture Quiz 4 (Fri) and the final DSM batch (Sat). Final exam dates should be posted on SOLUS by now — once confirmed, come back and block review time in the Sunday planning slot. <b>Ultimate's season is over</b> (last game was Nov 29) — Sunday evening (Dec 6) reverts to the pre-season routine. Thursday's Volleyball (Dec 3) is its last game this term.",
+      note:"MATH 225 Quiz 6 (Dec 3, the last one — best 4 of 6 count) lands right before BIOL closes out its term work: Lecture Quiz 4 (Fri) and the final DSM batch (Sat). Final exam dates should be posted on SOLUS by now — once confirmed, come back and block review time in the Sunday planning slot. <b>Both sports are done for the season</b> — Ultimate ended Nov 29 and Volleyball ended Nov 27, so neither Sunday (Dec 6) nor Thursday (Dec 3) has a game anymore; both revert to the pre-season evening routine.",
       due:{
         Mon:[{text:"PHYS 242 Problem Set 8 due", weight:2}],
         Fri:[
@@ -390,6 +390,12 @@
         {day:"Thu", match:"BIOL 102 — Lab", cancel:true},
       ],
       dayOverrides:[
+        // Volleyball's season ended Nov 27, before reaching what would've
+        // been its last game (Thu Dec 3) — revert that evening back to the
+        // pre-season routine.
+        {day:"Thu", start:"17:20", end:"17:40", label:"Walk home", cat:"commute"},
+        {day:"Thu", start:"17:40", end:"18:10", label:"Dinner", cat:"meal"},
+        {day:"Thu", start:"18:10", end:"21:30", label:"Study block", cat:"study"},
         // Ultimate's season ended Nov 29 — this week's Sunday (Dec 6)
         // reverts to the pre-season evening routine.
         {day:"Sun", start:"19:00", end:"21:30", label:"Protected downtime", cat:"downtime"},
